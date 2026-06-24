@@ -33,7 +33,9 @@ interface CartContextValue {
 }
 
 const CartContext = createContext<CartContextValue | null>(null);
-const STORAGE_KEY = 'bc-cart-v1';
+// v2: we no longer persist the catalogue (see below). Bumped to discard any
+// stale v1 cart that held old product ids.
+const STORAGE_KEY = 'bc-cart-v2';
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [catalog, setCatalog] = useState<Product[]>([]);
@@ -41,6 +43,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [customer, setCustomerState] = useState<CustomerDetails | null>(null);
   const [hydrated, setHydrated] = useState(false);
 
+  // Restore ONLY quantities + customer. The catalogue is NOT persisted: it's
+  // set fresh from the server by the catalogue/review pages. (Persisting it
+  // caused this provider's hydrate effect — which runs AFTER child page effects —
+  // to overwrite the fresh catalogue with a stale snapshot, so new product ids
+  // no longer matched and lines/total came out empty.)
   useEffect(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
@@ -48,11 +55,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
         const s = JSON.parse(raw) as {
           quantities?: Record<string, number>;
           customer?: CustomerDetails | null;
-          catalog?: Product[];
         };
         if (s.quantities) setQuantities(s.quantities);
         if (s.customer) setCustomerState(s.customer);
-        if (s.catalog) setCatalog(s.catalog);
       }
     } catch {
       /* ignore corrupt storage */
@@ -63,11 +68,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!hydrated) return;
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ quantities, customer, catalog }));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ quantities, customer }));
     } catch {
       /* ignore quota / private mode */
     }
-  }, [quantities, customer, catalog, hydrated]);
+  }, [quantities, customer, hydrated]);
 
   // Stable identities so consumers' effects don't loop.
   const setQty = useCallback((productId: string, qty: number) => {
@@ -89,10 +94,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
         .map((p) => ({ product: p, qty: quantities[p.id] })),
     [catalog, quantities],
   );
-  const itemCount = useMemo(
-    () => Object.values(quantities).reduce((s, n) => s + n, 0),
-    [quantities],
-  );
+  // Derive from lines (catalogue ∩ quantities) so the count always matches the
+  // total and any stale quantity whose product isn't in the catalogue is ignored.
+  const itemCount = useMemo(() => lines.reduce((s, l) => s + l.qty, 0), [lines]);
   const depositTotal = useMemo(
     () => lines.reduce((s, l) => s + l.product.depositAmount * l.qty, 0),
     [lines],
