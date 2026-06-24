@@ -41,9 +41,9 @@ env:
   - variable: NEXT_PUBLIC_APP_URL
     value: "https://beefcartel.com.au"
     availability: [BUILD, RUNTIME]
-  # Stripe publishable key is public — plain env is fine. NOTE set the real value.
+  # Stripe publishable key is public — plain env is fine.
   - variable: NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
-    value: "pk_test_xxx"
+    value: "pk_test_51TcCN0PiNcHZREkNZ0MvP6eAe4Sg2ZK3U22UM9zPUPugdGDNrtj5XnAj9eGNYtz6S32h8gLCuMlVcKbnzoHPZqNf00tv2vUAvg"
     availability: [BUILD, RUNTIME]
 
   # ---- Server-only config (runtime; not secret) ----
