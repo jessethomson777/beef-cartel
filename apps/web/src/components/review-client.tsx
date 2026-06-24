@@ -117,8 +117,8 @@ export function ReviewClient({ products }: { products: Product[] }) {
             <span className="bc-caption bc-tnum">{formatAUD(estBalanceTotal)}</span>
           </div>
           <p className="bc-caption" style={{ color: 'var(--bc-color-text-faint)', marginTop: 'var(--bc-space-3)' }}>
-            <span style={{ color: 'var(--bc-color-accent)' }}>*</span> Final price is billed by actual
-            carcass weight at dispatch. We save your card today and charge the balance then.
+            <span style={{ color: 'var(--bc-color-accent)' }}>*</span> Final price is billed by the
+            actual weight of your box at dispatch. We save your card today and charge the balance then.
           </p>
         </div>
       </div>
@@ -135,7 +135,7 @@ export function ReviewClient({ products }: { products: Product[] }) {
         style={{ display: 'flex', flexDirection: 'column', gap: 'var(--bc-space-4)', padding: 'var(--bc-space-4)' }}
       >
         <Field label="Full name" required error={touched ? errors.name : ''}>
-          <Input value={form.name} onChange={set('name')} autoComplete="name" placeholder="Jane Butcher" />
+          <Input value={form.name} onChange={set('name')} autoComplete="name" placeholder="Jane Smith" />
         </Field>
         <Field label="Email" required error={touched ? errors.email : ''} helper="Receipts and dispatch updates go here.">
           <Input value={form.email} onChange={set('email')} type="email" autoComplete="email" placeholder="you@example.com" />

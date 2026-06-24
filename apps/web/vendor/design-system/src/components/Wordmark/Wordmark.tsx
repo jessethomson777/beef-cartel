@@ -10,19 +10,22 @@ export interface WordmarkProps extends HTMLAttributes<HTMLElement> {
   size?: WordmarkSize;
   /** `inline` = BEEF ◆ CARTEL · `stacked` = BEEF / hairline / CARTEL. Default `inline`. */
   layout?: WordmarkLayout;
-  /** Shows the "PRIVATE BUTCHERY · EST. NOWHERE" eyebrow above the mark. */
+  /** Shows the brand eyebrow above the mark (see TAGLINE). */
   showTagline?: boolean;
+  /** Override the eyebrow text. Defaults to TAGLINE. */
+  tagline?: string;
   /** Root element tag. Default `span` (inline-safe). */
   as?: ElementType;
 }
 
-// NOTE: brand copy lives here as constants so the mark reads identically everywhere.
-const TAGLINE = 'PRIVATE BUTCHERY · EST. NOWHERE';
+// NOTE: brand copy lives here as a constant so the mark reads identically everywhere.
+const TAGLINE = 'PRIVATE WAGYU · STRAIGHT FROM THE SOURCE';
 
 export function Wordmark({
   size = 'md',
   layout = 'inline',
   showTagline = false,
+  tagline = TAGLINE,
   as,
   className,
   ...rest
@@ -43,7 +46,7 @@ export function Wordmark({
       {showTagline && (
         // aria-hidden: the accessible name already says "Beef Cartel"; the eyebrow is decorative.
         <span className="bc-wordmark__tagline" aria-hidden="true">
-          {TAGLINE}
+          {tagline}
         </span>
       )}
       <span className="bc-wordmark__lockup" aria-hidden="true">

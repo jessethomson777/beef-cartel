@@ -51,7 +51,7 @@ export async function sendDepositReceipt(order: Order): Promise<void> {
       <tr><td style="color:#B8AC98">Deposit paid today</td><td style="text-align:right;font-weight:700;color:#F4EFE6">${formatAUD(order.depositAmount)}</td></tr>
       <tr><td style="color:#8C7F6C;font-size:13px;padding-top:6px">Est. balance on dispatch</td><td style="text-align:right;color:#8C7F6C;font-size:13px;padding-top:6px">${formatAUD(estBalance)}</td></tr>
     </table>
-    <p style="font-size:12px;color:#8C7F6C;line-height:1.5;margin-top:16px"><span style="color:#B08D4F">*</span> Final price is billed by actual carcass weight at dispatch. We'll charge the balance to your saved card and email a receipt.</p>`;
+    <p style="font-size:12px;color:#8C7F6C;line-height:1.5;margin-top:16px"><span style="color:#B08D4F">*</span> Final price is billed by the actual weight of your box at dispatch. We'll charge the balance to your saved card and email a receipt.</p>`;
   await client().emails.send({
     from: from(),
     to: order.email,

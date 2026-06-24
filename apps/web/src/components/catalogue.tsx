@@ -1,21 +1,27 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { BoxCard, StickyOrderBar, SectionHeader, Wordmark, GradeBadge } from '@beef-cartel/design-system';
+import { BoxCard, StickyOrderBar, SectionHeader, Wordmark } from '@beef-cartel/design-system';
 import { PageShell } from './page-shell';
 import { useCart } from './cart-provider';
 import { weightRange, estBalance } from '@/lib/money';
 import type { Product } from '@/lib/types';
 
+const GRADES = ['6/7', '8/9', '9+'] as const;
+type Grade = (typeof GRADES)[number];
+
 export function Catalogue({ products }: { products: Product[] }) {
   const router = useRouter();
   const { setCatalog, quantities, setQty, itemCount, depositTotal } = useCart();
+  const [grade, setGrade] = useState<Grade>('8/9');
 
   // Keep the cart's catalogue snapshot in sync with what the server served.
   useEffect(() => {
     setCatalog(products);
   }, [products, setCatalog]);
+
+  const shown = useMemo(() => products.filter((p) => p.grade === grade), [products, grade]);
 
   return (
     <PageShell stickyBarSpace>
@@ -30,21 +36,58 @@ export function Catalogue({ products }: { products: Product[] }) {
         <Wordmark size="lg" showTagline />
         <p
           className="bc-body-lg bc-muted"
-          style={{ maxWidth: '30ch', margin: 'var(--bc-space-5) auto 0' }}
+          style={{ maxWidth: '32ch', margin: 'var(--bc-space-5) auto 0' }}
         >
-          Premium boxed beef, reserved on deposit. MSA 6/7+, weighed and dispatched at peak.
+          Premium Wagyu, by the cut — MSA 6/7 through 9+. Reserve your box with a deposit, direct from the source.
         </p>
-        <div style={{ display: 'inline-flex', gap: 'var(--bc-space-2)', marginTop: 'var(--bc-space-5)' }}>
-          <GradeBadge grade="MSA 6" />
-          <GradeBadge grade="MSA 7" />
-          <GradeBadge grade="9+" variant="solid" />
-        </div>
       </section>
 
       <div style={{ padding: 'var(--bc-space-8) var(--bc-space-4) 0' }}>
-        <SectionHeader index="01" eyebrow="The Cuts" title="This month’s boxes" />
+        <SectionHeader index="01" eyebrow="The Cuts" title="Choose your grade" />
       </div>
 
+      {/* MSA grade filter */}
+      <div style={{ padding: 'var(--bc-space-5) var(--bc-space-4) 0' }}>
+        <div
+          role="group"
+          aria-label="MSA grade"
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            gap: 'var(--bc-space-2)',
+            padding: 'var(--bc-space-1)',
+            background: 'var(--bc-color-surface)',
+            border: '1px solid var(--bc-color-border)',
+            borderRadius: 'var(--bc-radius-pill)',
+          }}
+        >
+          {GRADES.map((g) => {
+            const selected = g === grade;
+            return (
+              <button
+                key={g}
+                type="button"
+                aria-pressed={selected}
+                onClick={() => setGrade(g)}
+                className="bc-label bc-tnum"
+                style={{
+                  minHeight: 44,
+                  border: 'none',
+                  cursor: 'pointer',
+                  borderRadius: 'var(--bc-radius-pill)',
+                  background: selected ? 'var(--bc-color-brand)' : 'transparent',
+                  color: selected ? 'var(--bc-color-on-brand)' : 'var(--bc-color-text-muted)',
+                  transition: 'background var(--bc-motion-base) var(--bc-ease), color var(--bc-motion-base) var(--bc-ease)',
+                }}
+              >
+                MSA {g}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Cards for the selected grade */}
       <div
         style={{
           display: 'flex',
@@ -53,12 +96,12 @@ export function Catalogue({ products }: { products: Product[] }) {
           padding: 'var(--bc-space-5) var(--bc-space-4)',
         }}
       >
-        {products.map((p) => (
+        {shown.map((p) => (
           <BoxCard
             key={p.id}
             name={p.name}
             image={p.imageUrl}
-            grade={p.grade}
+            grade={`MSA ${p.grade}`}
             weightRange={weightRange(p)}
             cut={p.cuts}
             deposit={p.depositAmount}

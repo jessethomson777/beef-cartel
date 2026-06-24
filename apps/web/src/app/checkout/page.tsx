@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Elements,
@@ -8,7 +8,7 @@ import {
   useStripe,
   useElements,
 } from '@stripe/react-stripe-js';
-import type { Appearance } from '@stripe/stripe-js';
+import type { Appearance, StripeElementsOptions } from '@stripe/stripe-js';
 import { Button, SectionHeader } from '@beef-cartel/design-system';
 import { PageShell, BrandHeader } from '@/components/page-shell';
 import { useCart } from '@/components/cart-provider';
@@ -30,6 +30,9 @@ const appearance: Appearance = {
     spacingUnit: '4px',
   },
 };
+
+// Stable singleton so <Elements> never re-initialises on re-render.
+const stripePromise = getStripe();
 
 function CheckoutForm({ orderId, depositAmount }: { orderId: string; depositAmount: number }) {
   const stripe = useStripe();
@@ -88,6 +91,14 @@ export default function CheckoutPage() {
         : String(Math.round(performance.now()));
   }
 
+  // Memoised so the options object identity is stable across re-renders —
+  // passing a fresh object to <Elements> remounts the Payment Element (it
+  // flashes a shimmer then vanishes). Only recompute when the secret changes.
+  const elementsOptions = useMemo<StripeElementsOptions | undefined>(
+    () => (clientSecret ? { clientSecret, appearance } : undefined),
+    [clientSecret],
+  );
+
   useEffect(() => {
     if (!hydrated || started.current) return;
     if (lines.length === 0 || !customer) {
@@ -126,8 +137,8 @@ export default function CheckoutPage() {
           <p className="bc-body bc-muted">Preparing secure checkout…</p>
         )}
 
-        {clientSecret && orderId && (
-          <Elements stripe={getStripe()} options={{ clientSecret, appearance }}>
+        {elementsOptions && orderId && (
+          <Elements stripe={stripePromise} options={elementsOptions}>
             <CheckoutForm orderId={orderId} depositAmount={depositAmount} />
           </Elements>
         )}

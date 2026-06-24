@@ -42,7 +42,7 @@ export function PriceBlock({
   currency = '$',
   depositLabel = 'Deposit today',
   balanceLabel = 'Est. balance on dispatch',
-  caveat = 'Final price billed by actual carcass weight at dispatch.',
+  caveat = 'Final price billed by the actual weight of your box at dispatch.',
   size = 'default',
   className,
   ...rest

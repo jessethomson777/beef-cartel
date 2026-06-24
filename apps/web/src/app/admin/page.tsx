@@ -150,6 +150,8 @@ function Dashboard({ user }: { user: User }) {
   const [error, setError] = useState<string | null>(null);
   const [poBusy, setPoBusy] = useState(false);
   const [poMsg, setPoMsg] = useState<string | null>(null);
+  const [seedMsg, setSeedMsg] = useState<string | null>(null);
+  const [seedBusy, setSeedBusy] = useState(false);
 
   const authedFetch = useCallback(
     async (url: string, init?: RequestInit) => {
@@ -194,6 +196,22 @@ function Dashboard({ user }: { user: User }) {
     }
   };
 
+  const seedCatalogue = async () => {
+    setSeedBusy(true);
+    setSeedMsg(null);
+    try {
+      const res = await authedFetch('/api/admin/seed-products', { method: 'POST' });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || 'Seed failed');
+      setSeedMsg(`Catalogue seeded — ${json.created} added, ${json.skipped} already present${json.cycleCreated ? ', open cycle created' : ''}. Edit products in Firebase → Firestore → products.`);
+      load();
+    } catch (e) {
+      setSeedMsg((e as Error).message);
+    } finally {
+      setSeedBusy(false);
+    }
+  };
+
   if (error) {
     return (
       <p className="bc-body" role="alert" style={{ color: 'var(--bc-color-danger)', padding: 'var(--bc-space-4)' }}>
@@ -214,6 +232,18 @@ function Dashboard({ user }: { user: User }) {
         {' · '}
         {po.orderCount} orders
       </p>
+
+      {/* One-time catalogue seed → makes every product editable in Firestore. */}
+      <div>
+        <Button variant="ghost" onClick={seedCatalogue} loading={seedBusy}>
+          Seed catalogue to Firestore
+        </Button>
+        {seedMsg && (
+          <p className="bc-caption" style={{ marginTop: 'var(--bc-space-2)', color: 'var(--bc-color-text-muted)' }}>
+            {seedMsg}
+          </p>
+        )}
+      </div>
 
       {/* Supplier PO */}
       <section
