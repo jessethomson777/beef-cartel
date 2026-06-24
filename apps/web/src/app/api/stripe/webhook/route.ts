@@ -35,8 +35,8 @@ export async function POST(req: Request) {
         // Deposit succeeded → promote the staged order and email the receipt.
         const paymentMethodId =
           typeof pi.payment_method === 'string' ? pi.payment_method : (pi.payment_method?.id ?? null);
-        const order = await finalizeOrderFromPending(orderId, paymentMethodId);
-        if (order) {
+        const { order, created } = await finalizeOrderFromPending(orderId, paymentMethodId);
+        if (created && order) {
           try {
             await sendDepositReceipt(order);
           } catch (mailErr) {

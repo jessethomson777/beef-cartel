@@ -49,6 +49,10 @@ export interface OrderItem {
   qty: number;
   unitDeposit: number;
   estUnitTotal: number;
+  /** MSA grade label, e.g. "8/9" (denormalised for receipts/confirmation). */
+  grade?: string;
+  /** Weight range string, e.g. "1.2–1.5 kg". */
+  weightRange?: string;
 }
 
 export interface Order {

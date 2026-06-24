@@ -4,7 +4,7 @@ import { adminDb } from '@/lib/firebase-admin';
 import { getProductsByIds } from '@/lib/server/products';
 import { getOpenCycle } from '@/lib/server/cycles';
 import { writePendingOrder } from '@/lib/server/orders';
-import { toCents } from '@/lib/money';
+import { toCents, weightRange } from '@/lib/money';
 import type { OrderItem, PendingOrder } from '@/lib/types';
 
 export const runtime = 'nodejs';
@@ -48,6 +48,8 @@ export async function POST(req: Request) {
         qty,
         unitDeposit: p.depositAmount,
         estUnitTotal: p.estTotalAmount,
+        grade: p.grade,
+        weightRange: weightRange(p),
       });
     }
     if (orderItems.length === 0) {

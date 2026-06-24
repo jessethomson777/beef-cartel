@@ -2,29 +2,36 @@ import Link from 'next/link';
 import { Button, ListRow, OrderTimeline, SectionHeader } from '@beef-cartel/design-system';
 import { PageShell, BrandHeader } from '@/components/page-shell';
 import { ClearCartOnMount } from '@/components/clear-cart-on-mount';
-import { getOrder, getPendingOrder } from '@/lib/server/orders';
+import { getOrder, getPendingOrder, finalizeOrderFromPending } from '@/lib/server/orders';
+import { stripe } from '@/lib/stripe';
+import { sendDepositReceipt } from '@/lib/email';
 import { formatAUD } from '@/lib/money';
-import type { OrderItem, OrderStatus } from '@/lib/types';
+import type { Order, OrderItem, OrderStatus, PendingOrder } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Order confirmed' };
 
-// Maps a status to the active step in [Ordered, Sent to supplier, Dispatched,
-// Balance charged]. Each status lights ITS OWN step as current; balance_charged
-// uses 4 (out of range) so all four read as done — the terminal "complete" look.
 function currentStep(status?: OrderStatus): number {
   switch (status) {
     case 'deposit_paid':
-      return 0; // Ordered
+      return 0;
     case 'sent_to_supplier':
       return 1;
     case 'dispatched':
     case 'balance_failed':
-      return 2; // at/awaiting the balance step (failed shows here, not "charged")
+      return 2;
     case 'balance_charged':
-      return 4; // all steps done
+      return 4;
     default:
-      return 0; // payment still confirming
+      return 0;
+  }
+}
+
+async function safe<T>(p: Promise<T>): Promise<T | null> {
+  try {
+    return await p;
+  } catch {
+    return null;
   }
 }
 
@@ -35,47 +42,49 @@ export default async function ConfirmationPage({
 }) {
   const { order: orderId } = await searchParams;
 
-  let items: OrderItem[] = [];
-  let deposit = 0;
-  let email = '';
-  let status: OrderStatus | undefined;
-  let confirmed = false;
-  let found = false;
+  let order: Order | null = orderId ? await safe(getOrder(orderId)) : null;
+  let pending: PendingOrder | null = null;
 
-  if (orderId) {
-    try {
-      const order = await getOrder(orderId);
-      if (order) {
-        found = true;
-        confirmed = true;
-        items = order.items ?? [];
-        deposit = order.depositAmount;
-        email = order.email;
-        status = order.status;
-      }
-    } catch {
-      /* admin SDK unavailable locally — fall through to optimistic view */
-    }
-    if (!found) {
+  // Fallback: if the webhook hasn't finalised the order yet (lag or a
+  // mis-subscribed endpoint), verify the payment with Stripe and finalise it
+  // here. Idempotent with the webhook; the receipt emails exactly once.
+  if (!order && orderId) {
+    pending = await safe(getPendingOrder(orderId));
+    if (pending?.depositPiId) {
       try {
-        const pending = await getPendingOrder(orderId);
-        if (pending) {
-          found = true;
-          items = pending.items;
-          deposit = pending.depositAmount;
-          email = pending.email;
+        const pi = await stripe().paymentIntents.retrieve(pending.depositPiId);
+        if (pi.status === 'succeeded') {
+          const pmId =
+            typeof pi.payment_method === 'string' ? pi.payment_method : (pi.payment_method?.id ?? null);
+          const result = await finalizeOrderFromPending(orderId, pmId);
+          if (result.order) {
+            order = result.order;
+            if (result.created) {
+              try {
+                await sendDepositReceipt(result.order);
+              } catch (mailErr) {
+                console.error('[confirmation] receipt email failed:', (mailErr as Error).message);
+              }
+            }
+          }
         }
-      } catch {
-        /* ignore */
+      } catch (e) {
+        console.error('[confirmation] finalise fallback failed:', (e as Error).message);
       }
     }
   }
+
+  const confirmed = !!order;
+  const items: OrderItem[] = order?.items ?? pending?.items ?? [];
+  const deposit = order?.depositAmount ?? pending?.depositAmount ?? 0;
+  const email = order?.email ?? pending?.email ?? '';
+  const status = order?.status;
 
   const estBalanceTotal = items.reduce((s, i) => s + (i.estUnitTotal - i.unitDeposit) * i.qty, 0);
 
   return (
     <PageShell>
-      <ClearCartOnMount />
+      {confirmed && <ClearCartOnMount />}
       <BrandHeader />
 
       <div style={{ padding: 'var(--bc-space-8) var(--bc-space-4) 0' }}>
@@ -104,6 +113,11 @@ export default async function ConfirmationPage({
               <ListRow
                 key={i.productId}
                 title={`${i.name} × ${i.qty}`}
+                subtitle={
+                  i.grade
+                    ? `MSA ${i.grade}${i.weightRange ? ` · ${i.weightRange}` : ''}`
+                    : undefined
+                }
                 value={formatAUD(i.unitDeposit * i.qty)}
                 divider={idx < items.length - 1}
               />

@@ -77,7 +77,7 @@ async function readItems(orderId: string): Promise<OrderItem[]> {
 export async function finalizeOrderFromPending(
   orderId: string,
   paymentMethodId: string | null,
-): Promise<Order | null> {
+): Promise<{ order: Order | null; created: boolean }> {
   const orderRef = db().collection('orders').doc(orderId);
   const pendingRef = db().collection('pendingOrders').doc(orderId);
 
@@ -118,9 +118,9 @@ export async function finalizeOrderFromPending(
     return { kind: 'created' as const, order };
   });
 
-  if (outcome.kind === 'existed') return getOrder(orderId);
-  if (outcome.kind === 'missing') return null;
-  return outcome.order;
+  if (outcome.kind === 'existed') return { order: await getOrder(orderId), created: false };
+  if (outcome.kind === 'missing') return { order: null, created: false };
+  return { order: outcome.order, created: true };
 }
 
 export async function getOrder(orderId: string): Promise<Order | null> {

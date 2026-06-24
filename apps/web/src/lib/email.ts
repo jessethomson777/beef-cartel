@@ -32,8 +32,12 @@ function itemsTable(items: OrderItem[]): string {
   const rows = items
     .map(
       (i) =>
-        `<tr><td style="padding:8px 0;color:#F4EFE6">${i.name} <span style="color:#8C7F6C">× ${i.qty}</span></td>
-         <td style="padding:8px 0;text-align:right;color:#B8AC98">${formatAUD(i.unitDeposit * i.qty)}</td></tr>`,
+        `<tr><td style="padding:8px 0;color:#F4EFE6">${i.name} <span style="color:#8C7F6C">× ${i.qty}</span>${
+          i.grade
+            ? `<br><span style="color:#B08D4F;font-size:12px">MSA ${i.grade}${i.weightRange ? ` · ${i.weightRange}` : ''}</span>`
+            : ''
+        }</td>
+         <td style="padding:8px 0;text-align:right;color:#B8AC98;vertical-align:top">${formatAUD(i.unitDeposit * i.qty)}</td></tr>`,
     )
     .join('');
   return `<table style="width:100%;border-collapse:collapse;font-size:14px">${rows}</table>`;
