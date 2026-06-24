@@ -51,10 +51,10 @@ env:
     value: "beef-cartel"
     availability: [RUNTIME]
   - variable: ADMIN_EMAILS
-    value: "jessethomson777@gmail.com" # NOTE add your brother's email (comma-separated)
+    value: "jessethomson777@gmail.com,lainethomson@gmail.com,info@emeraldwebsites.com.au"
     availability: [RUNTIME]
   - variable: SUPPLIER_EMAIL
-    value: "" # NOTE fill: where the supplier PO is emailed
+    value: "info@emeraldwebsites.com.au" # NOTE testing value — swap to the real supplier later
     availability: [RUNTIME]
   - variable: EMAIL_FROM
     value: "Beef Cartel <orders@beefcartel.com.au>"
