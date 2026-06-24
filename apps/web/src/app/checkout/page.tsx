@@ -2,19 +2,15 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import {
-  Elements,
-  PaymentElement,
-  useStripe,
-  useElements,
-} from '@stripe/react-stripe-js';
+import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import type { Appearance, StripeElementsOptions } from '@stripe/stripe-js';
 import { Button, SectionHeader } from '@beef-cartel/design-system';
 import { PageShell, BrandHeader } from '@/components/page-shell';
 import { useCart } from '@/components/cart-provider';
 import { getStripe } from '@/lib/stripe-client';
 import { createDepositIntent } from '@/lib/api-client';
-import { formatAUD } from '@/lib/money';
+import { formatAUD, toCents } from '@/lib/money';
+import type { CustomerDetails } from '@/lib/types';
 
 // Stripe Elements themed to the Beef Cartel palette.
 const appearance: Appearance = {
@@ -34,7 +30,14 @@ const appearance: Appearance = {
 // Stable singleton so <Elements> never re-initialises on re-render.
 const stripePromise = getStripe();
 
-function CheckoutForm({ orderId, depositAmount }: { orderId: string; depositAmount: number }) {
+interface CheckoutFormProps {
+  items: { productId: string; qty: number }[];
+  customer: CustomerDetails;
+  requestId: string;
+  depositAmount: number;
+}
+
+function CheckoutForm({ items, customer, requestId, depositAmount }: CheckoutFormProps) {
   const stripe = useStripe();
   const elements = useElements();
   const [submitting, setSubmitting] = useState(false);
@@ -45,13 +48,34 @@ function CheckoutForm({ orderId, depositAmount }: { orderId: string; depositAmou
     if (!stripe || !elements) return;
     setSubmitting(true);
     setMessage(null);
+
+    // Validate the card details first.
+    const { error: submitError } = await elements.submit();
+    if (submitError) {
+      setMessage(submitError.message ?? 'Please check your card details.');
+      setSubmitting(false);
+      return;
+    }
+
+    // Only NOW create the PaymentIntent + order (deferred) — server recomputes the amount.
+    let clientSecret: string;
+    let orderId: string;
+    try {
+      const r = await createDepositIntent({ items, customer, requestId });
+      clientSecret = r.clientSecret;
+      orderId = r.orderId;
+    } catch (err) {
+      setMessage((err as Error).message);
+      setSubmitting(false);
+      return;
+    }
+
     const { error } = await stripe.confirmPayment({
       elements,
-      confirmParams: {
-        return_url: `${window.location.origin}/confirmation?order=${orderId}`,
-      },
+      clientSecret,
+      confirmParams: { return_url: `${window.location.origin}/confirmation?order=${orderId}` },
     });
-    // If we get here, confirmation failed (success redirects to return_url).
+    // Reaching here means confirmation failed (success redirects to return_url).
     setMessage(error.message ?? 'Payment could not be completed. Please try again.');
     setSubmitting(false);
   };
@@ -76,13 +100,9 @@ function CheckoutForm({ orderId, depositAmount }: { orderId: string; depositAmou
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { lines, customer, hydrated } = useCart();
-  const [clientSecret, setClientSecret] = useState<string | null>(null);
-  const [orderId, setOrderId] = useState<string | null>(null);
-  const [depositAmount, setDepositAmount] = useState(0);
-  const [error, setError] = useState<string | null>(null);
-  const started = useRef(false);
-  // Stable per-attempt id so a retried create-intent collapses to one PaymentIntent.
+  const { lines, customer, depositTotal, hydrated } = useCart();
+
+  // Stable per-attempt id so a double-click / retry collapses to one PaymentIntent.
   const requestId = useRef<string>('');
   if (!requestId.current) {
     requestId.current =
@@ -91,33 +111,25 @@ export default function CheckoutPage() {
         : String(Math.round(performance.now()));
   }
 
-  // Memoised so the options object identity is stable across re-renders —
-  // passing a fresh object to <Elements> remounts the Payment Element (it
-  // flashes a shimmer then vanishes). Only recompute when the secret changes.
-  const elementsOptions = useMemo<StripeElementsOptions | undefined>(
-    () => (clientSecret ? { clientSecret, appearance } : undefined),
-    [clientSecret],
-  );
-
+  // Send empty carts / missing details back to /review.
   useEffect(() => {
-    if (!hydrated || started.current) return;
-    if (lines.length === 0 || !customer) {
-      router.replace('/review');
-      return;
-    }
-    started.current = true;
-    createDepositIntent({
-      items: lines.map((l) => ({ productId: l.product.id, qty: l.qty })),
-      customer,
-      requestId: requestId.current,
-    })
-      .then((r) => {
-        setClientSecret(r.clientSecret);
-        setOrderId(r.orderId);
-        setDepositAmount(r.depositAmount);
-      })
-      .catch((e) => setError(e.message));
+    if (hydrated && (lines.length === 0 || !customer)) router.replace('/review');
   }, [hydrated, lines, customer, router]);
+
+  const items = useMemo(() => lines.map((l) => ({ productId: l.product.id, qty: l.qty })), [lines]);
+
+  // Deferred-intent mode: the Payment Element renders immediately from the amount;
+  // no PaymentIntent is created until the customer presses Pay.
+  const options = useMemo<StripeElementsOptions>(
+    () => ({
+      mode: 'payment',
+      amount: toCents(depositTotal),
+      currency: 'aud',
+      setupFutureUsage: 'off_session',
+      appearance,
+    }),
+    [depositTotal],
+  );
 
   return (
     <PageShell>
@@ -127,20 +139,17 @@ export default function CheckoutPage() {
       </div>
 
       <div style={{ padding: 'var(--bc-space-5) var(--bc-space-4)' }}>
-        {error && (
-          <p className="bc-body" role="alert" style={{ color: 'var(--bc-color-danger)' }}>
-            {error}
-          </p>
-        )}
-
-        {!error && !clientSecret && (
-          <p className="bc-body bc-muted">Preparing secure checkout…</p>
-        )}
-
-        {elementsOptions && orderId && (
-          <Elements stripe={stripePromise} options={elementsOptions}>
-            <CheckoutForm orderId={orderId} depositAmount={depositAmount} />
+        {hydrated && lines.length > 0 && customer && depositTotal > 0 ? (
+          <Elements stripe={stripePromise} options={options}>
+            <CheckoutForm
+              items={items}
+              customer={customer}
+              requestId={requestId.current}
+              depositAmount={depositTotal}
+            />
           </Elements>
+        ) : (
+          <p className="bc-body bc-muted">Preparing secure checkout…</p>
         )}
       </div>
     </PageShell>
