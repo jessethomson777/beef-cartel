@@ -314,7 +314,7 @@ export function Preview() {
       </div>
 
       {/* Fixed bottom bar — reflects the live cart. */}
-      <StickyOrderBar itemCount={itemCount} total={total} onCheckout={() => {}} hideWhenEmpty={false} />
+      <StickyOrderBar itemCount={itemCount} total={total} onCheckout={() => {}} onClear={() => {}} hideWhenEmpty={false} />
     </div>
   );
 }

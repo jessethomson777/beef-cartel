@@ -68,19 +68,21 @@ export function StickyOrderBar({
               &middot;
             </span>
             {totalLabel}
+          </span>
+          <span className="bc-sticky-order-bar__totalrow">
+            <span className="bc-sticky-order-bar__total bc-tnum">
+              {formatMoney(total, currency)}
+            </span>
             {onClear && (
               <button
                 type="button"
                 onClick={onClear}
-                className="bc-sticky-order-bar__clear"
+                className="bc-sticky-order-bar__clear bc-label"
                 aria-label="Clear cart"
               >
                 {clearLabel}
               </button>
             )}
-          </span>
-          <span className="bc-sticky-order-bar__total bc-tnum">
-            {formatMoney(total, currency)}
           </span>
         </div>
         <Button

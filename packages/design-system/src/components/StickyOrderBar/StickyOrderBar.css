@@ -42,6 +42,7 @@
   flex-direction: column;
   gap: var(--bc-space-1);
   min-width: 0; /* allow the row to shrink before the CTA does */
+  overflow: hidden; /* clip rather than overlap the CTA on very narrow screens */
 }
 
 .bc-sticky-order-bar__meta {
@@ -49,25 +50,30 @@
   align-items: center;
   gap: var(--bc-space-2);
   color: var(--bc-color-text-muted);
+  white-space: nowrap; /* keep "2 boxes · Deposit today" on one line */
+}
+
+/* Total + Clear share a baseline-aligned row below the meta. */
+.bc-sticky-order-bar__totalrow {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--bc-space-4);
 }
 
 .bc-sticky-order-bar__dot {
   color: var(--bc-color-accent-text); /* brass tick — accent only, on dark */
 }
 
-/* Subtle text button — inherits the .bc-label meta styling (uppercase, tracked). */
+/* Subtle text button (uses the .bc-label class for uppercase/tracked sizing). */
 .bc-sticky-order-bar__clear {
   background: none;
   border: none;
   cursor: pointer;
-  font: inherit;
-  letter-spacing: inherit;
-  text-transform: inherit;
+  white-space: nowrap;
   color: var(--bc-color-accent-text);
   text-decoration: underline;
   text-underline-offset: 2px;
   padding: var(--bc-space-2) var(--bc-space-1);
-  margin: calc(var(--bc-space-2) * -1) 0; /* pad the tap area without growing the row */
   -webkit-tap-highlight-color: transparent;
 }
 .bc-sticky-order-bar__clear:hover {
