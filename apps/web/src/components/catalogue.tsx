@@ -13,8 +13,20 @@ type Grade = (typeof GRADES)[number];
 
 export function Catalogue({ products }: { products: Product[] }) {
   const router = useRouter();
-  const { setCatalog, quantities, setQty, itemCount, depositTotal } = useCart();
+  const { setCatalog, quantities, setQty, itemCount, depositTotal, clear } = useCart();
   const [grade, setGrade] = useState<Grade>('8/9');
+  const [confirmClear, setConfirmClear] = useState(false);
+
+  // Two-tap clear so a full cart can't be wiped by an accidental tap.
+  const handleClear = () => {
+    if (confirmClear) {
+      clear();
+      setConfirmClear(false);
+    } else {
+      setConfirmClear(true);
+      window.setTimeout(() => setConfirmClear(false), 3000);
+    }
+  };
 
   // Keep the cart's catalogue snapshot in sync with what the server served.
   useEffect(() => {
@@ -116,6 +128,8 @@ export function Catalogue({ products }: { products: Product[] }) {
         itemCount={itemCount}
         total={depositTotal}
         onCheckout={() => router.push('/review')}
+        onClear={handleClear}
+        clearLabel={confirmClear ? 'Tap to confirm' : 'Clear'}
         hideWhenEmpty
       />
     </PageShell>

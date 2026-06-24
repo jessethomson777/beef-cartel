@@ -16,6 +16,10 @@ export interface StickyOrderBarProps extends HTMLAttributes<HTMLDivElement> {
   totalLabel?: string;
   /** Text on the primary CTA. */
   ctaLabel?: string;
+  /** When provided, shows a subtle "Clear" button in the summary. */
+  onClear?: () => void;
+  /** Label for the clear button (the consumer can swap it for a confirm prompt). */
+  clearLabel?: string;
   /** When true and the cart is empty, render nothing. */
   hideWhenEmpty?: boolean;
 }
@@ -39,6 +43,8 @@ export function StickyOrderBar({
   currency = '$',
   totalLabel = 'Deposit today',
   ctaLabel = 'Checkout',
+  onClear,
+  clearLabel = 'Clear',
   hideWhenEmpty = true,
   className,
   ...rest
@@ -62,6 +68,16 @@ export function StickyOrderBar({
               &middot;
             </span>
             {totalLabel}
+            {onClear && (
+              <button
+                type="button"
+                onClick={onClear}
+                className="bc-sticky-order-bar__clear"
+                aria-label="Clear cart"
+              >
+                {clearLabel}
+              </button>
+            )}
           </span>
           <span className="bc-sticky-order-bar__total bc-tnum">
             {formatMoney(total, currency)}
