@@ -19,7 +19,7 @@ export interface WordmarkProps extends HTMLAttributes<HTMLElement> {
 }
 
 // NOTE: brand copy lives here as a constant so the mark reads identically everywhere.
-const TAGLINE = 'PRIVATE WAGYU · STRAIGHT FROM THE SOURCE';
+const TAGLINE = 'WHOLESALE WAGYU · STRAIGHT FROM THE SOURCE';
 
 export function Wordmark({
   size = 'md',

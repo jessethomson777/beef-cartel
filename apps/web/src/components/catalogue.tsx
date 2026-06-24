@@ -38,12 +38,12 @@ export function Catalogue({ products }: { products: Product[] }) {
           className="bc-body-lg bc-muted"
           style={{ maxWidth: '32ch', margin: 'var(--bc-space-5) auto 0' }}
         >
-          Premium Wagyu, by the cut — MSA 6/7 through 9+. Reserve your box with a deposit, direct from the source.
+          Wholesale Wagyu cuts, by the box — MSA 6/7 through 9+. Reserve yours with a deposit, direct from the source.
         </p>
       </section>
 
       <div style={{ padding: 'var(--bc-space-8) var(--bc-space-4) 0' }}>
-        <SectionHeader index="01" eyebrow="The Cuts" title="Choose your grade" />
+        <SectionHeader index="01" eyebrow="Wholesale Cuts" title="Choose your grade" />
       </div>
 
       {/* MSA grade filter */}

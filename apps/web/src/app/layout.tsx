@@ -5,9 +5,9 @@ import { CartProvider } from '@/components/cart-provider';
 import { SwRegister } from '@/components/sw-register';
 
 export const metadata: Metadata = {
-  title: { default: 'Beef Cartel — premium boxed beef', template: '%s · Beef Cartel' },
+  title: { default: 'Beef Cartel — wholesale Wagyu cuts', template: '%s · Beef Cartel' },
   description:
-    'Premium boxed beef, reserved on deposit. MSA 6/7+ cuts — strip loin, eye fillet, brisket, tomahawk. Monthly preorder, delivered.',
+    'Premium Wagyu wholesale cuts, reserved on deposit. MSA 6/7 to 9+ — strip loin, cube roll, eye fillet, tomahawk, brisket and more. Direct from the source.',
   applicationName: 'Beef Cartel',
   manifest: '/manifest.webmanifest',
   appleWebApp: { capable: true, title: 'Beef Cartel', statusBarStyle: 'black-translucent' },
