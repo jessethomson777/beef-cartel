@@ -1,0 +1,69 @@
+/* PRICEBLOCK — deposit-now + est. balance + variable-weight caveat fine print.
+ * default / compact. Mirrors Button conventions: tokens only, BEM, cx merge. */
+
+.bc-priceblock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bc-space-1);
+  /* NOTE: tabular figures already global via .bc-tnum on the numerics;
+   * left-aligned reads as a price stack, not a centred receipt. */
+  text-align: left;
+}
+
+/* --- Eyebrow: muted uppercase label above the now-cost --------------------- */
+.bc-priceblock__eyebrow {
+  color: var(--bc-color-text-muted);
+}
+
+/* --- Deposit: the LARGE, prominent, actionable now-cost (bone) ------------- */
+.bc-priceblock__deposit {
+  display: block;
+  margin-top: var(--bc-space-1);
+  font-family: var(--bc-font-display);
+  font-size: var(--bc-text-h2);
+  font-weight: var(--bc-weight-bold);
+  line-height: var(--bc-leading-tight);
+  letter-spacing: var(--bc-tracking-tight);
+  color: var(--bc-color-text);
+}
+
+/* --- Balance: muted secondary line ----------------------------------------- */
+.bc-priceblock__balance {
+  margin: var(--bc-space-1) 0 0;
+  font-size: var(--bc-text-body);
+  line-height: var(--bc-leading-snug);
+  color: var(--bc-color-text-muted);
+}
+.bc-priceblock__balance-amount {
+  font-weight: var(--bc-weight-semibold);
+}
+
+/* --- Caveat: fine print, faint, with a brass marker ------------------------ */
+.bc-priceblock__caveat {
+  display: flex;
+  gap: var(--bc-space-1);
+  margin: var(--bc-space-2) 0 0;
+  /* Fine print stays legible: text-faint is decorative/large-only, so use the
+   * AA-safe muted role for this body copy. */
+  color: var(--bc-color-text-muted);
+  text-wrap: pretty;
+}
+.bc-priceblock__marker {
+  flex: none;
+  color: var(--bc-color-accent);
+  font-weight: var(--bc-weight-bold);
+  /* Nudge the asterisk onto the text baseline (it renders high by default). */
+  line-height: 1.4;
+}
+
+/* --- Compact: dense list rows ---------------------------------------------- */
+.bc-priceblock--compact .bc-priceblock__deposit {
+  font-size: var(--bc-text-h3);
+  margin-top: 0;
+}
+.bc-priceblock--compact .bc-priceblock__balance {
+  font-size: var(--bc-text-caption);
+}
+.bc-priceblock--compact .bc-priceblock__caveat {
+  margin-top: var(--bc-space-1);
+}

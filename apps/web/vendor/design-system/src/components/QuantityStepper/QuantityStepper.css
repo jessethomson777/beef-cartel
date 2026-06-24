@@ -1,0 +1,91 @@
+/* QUANTITYSTEPPER — the hero quantity control.
+ * [ − ] value [ + ] · pill on surface-raised with a brass hairline thread.
+ * Ghost buttons with brass glyph ink; bone tabular value that never reflows.
+ * Mirrors Button's token usage. */
+
+.bc-stepper {
+  display: inline-flex;
+  align-items: center;
+  background: var(--bc-color-surface-raised);
+  border: 1px solid var(--bc-color-hairline); /* brass "premium thread" */
+  border-radius: var(--bc-radius-pill);
+  /* Clip the ghost-button hover wash to the pill corners. */
+  overflow: hidden;
+  box-shadow: var(--bc-shadow-e1);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* --- Buttons: ghost, generous tap target ----------------------------------- */
+.bc-stepper__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px; /* WCAG tap target — both axes */
+  min-height: 44px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: var(--bc-color-accent-text); /* brass glyph ink on dark — AA */
+  cursor: pointer;
+  transition:
+    background-color var(--bc-motion-base) var(--bc-ease),
+    color var(--bc-motion-base) var(--bc-ease),
+    transform var(--bc-motion-fast) var(--bc-ease);
+}
+
+.bc-stepper__btn:hover:not(:disabled) {
+  background: var(--bc-color-surface-hover);
+}
+
+/* Tactile press — the glyph dips into the pill. */
+.bc-stepper__btn:active:not(:disabled) {
+  background: var(--bc-color-surface-hover);
+  transform: scale(0.9);
+}
+
+.bc-stepper__btn:disabled {
+  cursor: not-allowed;
+  color: var(--bc-color-text-faint);
+}
+
+.bc-stepper__glyph {
+  display: inline-flex;
+  font-family: var(--bc-font-sans);
+  font-size: var(--bc-text-h4);
+  font-weight: var(--bc-weight-semibold);
+  line-height: 1;
+}
+
+/* --- Value: bone, bold, tabular, fixed min-width so 9→10 never jumps ------- */
+.bc-stepper__value {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--bc-space-8); /* 32px — holds two digits without reflow */
+  padding: 0 var(--bc-space-2);
+  color: var(--bc-color-text);
+  font-size: var(--bc-text-body-lg);
+  font-weight: var(--bc-weight-bold);
+  line-height: 1;
+  text-align: center;
+}
+
+/* --- Compact: cart-line density (floor at 40px tall) ----------------------- */
+.bc-stepper--compact .bc-stepper__btn {
+  /* NOTE: compact relaxes the 44px tap floor to the allowed 40px minimum. */
+  min-width: 40px;
+  min-height: 40px;
+}
+.bc-stepper--compact .bc-stepper__glyph {
+  font-size: var(--bc-text-body);
+}
+.bc-stepper--compact .bc-stepper__value {
+  min-width: var(--bc-space-6); /* 24px */
+  font-size: var(--bc-text-body);
+}
+
+/* --- Disabled whole control ------------------------------------------------ */
+.bc-stepper.is-disabled {
+  opacity: 0.45;
+}

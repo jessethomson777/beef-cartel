@@ -1,0 +1,126 @@
+/* BUTTON — primary / secondary / ghost · default / large · loading / disabled.
+ * Reference component: mirror this structure, naming, and token usage. */
+
+.bc-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px; /* WCAG tap target */
+  padding: 0 var(--bc-space-5);
+  border: 1px solid transparent;
+  border-radius: var(--bc-radius-md);
+  font-family: var(--bc-font-sans);
+  font-size: var(--bc-text-body);
+  font-weight: var(--bc-weight-semibold);
+  letter-spacing: var(--bc-tracking-wide);
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color var(--bc-motion-base) var(--bc-ease),
+    border-color var(--bc-motion-base) var(--bc-ease),
+    color var(--bc-motion-base) var(--bc-ease),
+    box-shadow var(--bc-motion-base) var(--bc-ease),
+    transform var(--bc-motion-fast) var(--bc-ease);
+}
+
+.bc-button:active {
+  transform: translateY(1px);
+}
+
+.bc-button__content {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bc-space-2);
+}
+
+.bc-button__icon {
+  display: inline-flex;
+  align-items: center;
+  font-size: 1.1em;
+}
+
+/* --- Primary: oxblood fill ------------------------------------------------- */
+.bc-button--primary {
+  background: var(--bc-color-brand);
+  color: var(--bc-color-on-brand);
+  box-shadow: var(--bc-shadow-e1);
+}
+.bc-button--primary:hover {
+  background: var(--bc-color-brand-hover);
+}
+.bc-button--primary:active {
+  background: var(--bc-color-brand-active);
+}
+
+/* --- Secondary: brass outline ---------------------------------------------- */
+.bc-button--secondary {
+  background: transparent;
+  color: var(--bc-color-accent-text);
+  border-color: var(--bc-color-accent);
+}
+.bc-button--secondary:hover {
+  background: var(--bc-color-accent-tint);
+  border-color: var(--bc-color-accent-text);
+}
+.bc-button--secondary:active {
+  background: color-mix(in srgb, var(--bc-color-accent) 22%, transparent);
+}
+
+/* --- Ghost: bare ink ------------------------------------------------------- */
+.bc-button--ghost {
+  background: transparent;
+  color: var(--bc-color-text);
+}
+.bc-button--ghost:hover {
+  background: var(--bc-color-surface-hover);
+}
+.bc-button--ghost:active {
+  background: var(--bc-color-surface-raised);
+}
+
+/* --- Large = sticky checkout CTA ------------------------------------------- */
+.bc-button--large {
+  min-height: 54px;
+  padding: 0 var(--bc-space-6);
+  font-size: var(--bc-text-body-lg);
+  border-radius: var(--bc-radius-lg);
+}
+
+.bc-button--block {
+  display: flex;
+  width: 100%;
+}
+
+/* --- Disabled / loading ---------------------------------------------------- */
+.bc-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+  box-shadow: none;
+}
+.bc-button.is-loading {
+  cursor: progress;
+  opacity: 1;
+}
+.bc-button.is-loading .bc-button__content {
+  opacity: 0;
+}
+
+.bc-button__spinner {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid color-mix(in srgb, currentColor 28%, transparent);
+  border-top-color: currentColor;
+  animation: bc-spin 0.6s linear infinite;
+}
+
+@keyframes bc-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

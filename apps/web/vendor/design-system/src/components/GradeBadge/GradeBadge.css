@@ -1,0 +1,74 @@
+/* GRADE BADGE — tiny MSA marbling-grade tag · outline / solid · sm / md.
+ * Brass-on-dark. Self-contained + crisp so it can sit on a BoxCard image.
+ * Mirrors Button's structure, naming, and token usage. */
+
+.bc-grade-badge {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--bc-space-1);
+  border: 1px solid transparent;
+  border-radius: var(--bc-radius-pill);
+  /* .bc-label supplies font/size/weight/tracking/uppercase; pin line-height
+   * so the pill stays tight regardless of surrounding leading. */
+  line-height: 1;
+  white-space: nowrap;
+  vertical-align: middle;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Prefix sits a touch quieter than the numeral but keeps the brass ink. */
+.bc-grade-badge__prefix {
+  opacity: 0.85;
+}
+
+.bc-grade-badge__value {
+  font-weight: var(--bc-weight-bold);
+}
+
+/* --- Sizes ----------------------------------------------------------------- */
+.bc-grade-badge--sm {
+  padding: var(--bc-space-1) var(--bc-space-2);
+  font-size: var(--bc-text-label);
+}
+.bc-grade-badge--md {
+  padding: var(--bc-space-2) var(--bc-space-3);
+  font-size: var(--bc-text-caption);
+}
+
+/* --- Outline (default): brass text, brass line, brass wash ----------------- */
+.bc-grade-badge--outline {
+  color: var(--bc-color-accent-text);
+  border-color: var(--bc-color-accent);
+  background: var(--bc-color-accent-tint);
+}
+
+/* --- Solid: filled brass for premium grades (e.g. "9+") -------------------- */
+/* accent + on-accent is the AA-safe fill pair. */
+.bc-grade-badge--solid {
+  color: var(--bc-color-on-accent);
+  border-color: var(--bc-color-accent);
+  background: var(--bc-color-accent);
+  font-weight: var(--bc-weight-bold);
+}
+.bc-grade-badge--solid .bc-grade-badge__prefix {
+  /* On the dense brass fill, keep the prefix fully legible. */
+  opacity: 0.9;
+}
+
+/* --- Overlaid on a BoxCard image ------------------------------------------- *
+ * Hairline ring + soft drop keeps the tag crisp against busy photography
+ * without leaning on accent-strong (borders only) anywhere. */
+.bc-grade-badge--outline {
+  box-shadow:
+    var(--bc-shadow-e1),
+    inset 0 0 0 1px var(--bc-color-hairline);
+  /* Slight backdrop so the tint reads on light patches of meat photography. */
+  background-color: color-mix(
+    in srgb,
+    var(--bc-color-bg) 55%,
+    var(--bc-color-accent-tint)
+  );
+}
+.bc-grade-badge--solid {
+  box-shadow: var(--bc-shadow-e1);
+}

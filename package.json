@@ -3,19 +3,19 @@
   "private": true,
   "version": "0.0.0",
   "description": "Beef Cartel — premium boxed-beef preorder app. npm-workspace monorepo: packages/design-system (the brand kit) + apps/web (Next.js on Firebase App Hosting).",
+  "//": "apps/web is a standalone Next app (own lockfile, vendored design system) so Firebase App Hosting can build it; packages/* stays a workspace for the design-system preview + /design-sync.",
   "workspaces": [
-    "apps/*",
     "packages/*"
   ],
   "engines": {
-    "node": ">=20 <23"
+    "node": ">=20"
   },
   "scripts": {
-    "dev": "npm run dev --workspace apps/web",
-    "build": "npm run build --workspace apps/web",
-    "start": "npm run start --workspace apps/web",
-    "typecheck": "npm run typecheck --workspaces --if-present",
-    "seed": "npm run seed --workspace apps/web",
+    "dev": "npm --prefix apps/web run dev",
+    "build": "npm --prefix apps/web run build",
+    "start": "npm --prefix apps/web run start",
+    "typecheck": "npm --prefix apps/web run typecheck",
+    "seed": "npm --prefix apps/web run seed",
     "dev:ds": "npm run dev --workspace @beef-cartel/design-system"
   }
 }

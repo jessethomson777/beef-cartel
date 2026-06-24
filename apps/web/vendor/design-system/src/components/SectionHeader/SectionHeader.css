@@ -1,0 +1,78 @@
+/* SECTION HEADER — chaptered "members-only menu" header.
+ * Eyebrow row (brass number · hairline dash · brass label) above a display-serif
+ * title; optional trailing action shares the title's baseline-aligned row.
+ * Mirrors Button conventions: BEM, tokens only, no hardcoded hex/px. */
+
+.bc-section-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bc-space-2);
+}
+
+/* --- Eyebrow row: number · dash · label ------------------------------------ */
+.bc-section-header__eyebrow {
+  display: flex;
+  align-items: center;
+  gap: var(--bc-space-3);
+  margin: 0;
+}
+
+.bc-section-header__index {
+  font-family: var(--bc-font-display);
+  font-weight: var(--bc-weight-semibold);
+  font-size: var(--bc-text-h4);
+  line-height: 1;
+  letter-spacing: var(--bc-tracking-tight);
+  color: var(--bc-color-accent-text); /* brass text — dark surface only, AA */
+}
+
+/* The "premium thread": a short brass rule between number and label. */
+.bc-section-header__dash {
+  flex: 0 0 auto;
+  width: var(--bc-space-6);
+  height: 2px; /* hairline rule — no token finer than this */
+  background: var(--bc-color-accent);
+  border-radius: var(--bc-radius-pill);
+}
+
+.bc-section-header__eyebrow-text {
+  color: var(--bc-color-accent-text); /* .bc-label sets size/tracking/caps */
+}
+
+/* --- Title row (title + optional trailing action) -------------------------- */
+.bc-section-header__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--bc-space-4);
+}
+
+.bc-section-header__title {
+  color: var(--bc-color-text); /* bone ink */
+  /* font scale comes from the .bc-h1..h4 utility applied alongside */
+}
+
+.bc-section-header__action {
+  flex: 0 0 auto;
+  /* Action sits on the title baseline; line height kept tight so a ghost
+     Button or link aligns optically with the serif title. */
+  align-self: baseline;
+  line-height: 1;
+}
+
+/* --- Centre alignment ------------------------------------------------------ */
+.bc-section-header--center {
+  text-align: center;
+}
+.bc-section-header--center .bc-section-header__eyebrow {
+  justify-content: center;
+}
+.bc-section-header--center .bc-section-header__row {
+  /* NOTE: a trailing action + centred title can't both be truly centred, so
+     in centre mode the action stacks under the centred title rather than
+     fighting the space-between layout. */
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--bc-space-3);
+}

@@ -1,0 +1,76 @@
+/* STICKY ORDER BAR — fixed bottom checkout dock (mobile-critical).
+ * Mirrors Button conventions: BEM classes, tokens only, no hardcoded values. */
+
+.bc-sticky-order-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: var(--bc-z-sticky);
+  background: var(--bc-color-surface-raised);
+  /* Brass "premium thread" hairline along the top edge. */
+  border-top: 1px solid var(--bc-color-hairline);
+  box-shadow: var(--bc-shadow-e3);
+  animation: bc-sticky-order-bar-in var(--bc-motion-slow) var(--bc-ease-emphasized) both;
+}
+
+@keyframes bc-sticky-order-bar-in {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* Centred, max-width row so it reads as an intentional dock on desktop too. */
+.bc-sticky-order-bar__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--bc-space-4);
+  width: 100%;
+  max-width: 600px; /* tokens.breakpoint.md — no CSS token exists for breakpoints */
+  margin: 0 auto;
+  padding: var(--bc-space-4) var(--bc-space-5);
+  /* Clear the iOS home indicator without crushing the visible padding. */
+  padding-bottom: calc(var(--bc-space-4) + env(safe-area-inset-bottom));
+}
+
+.bc-sticky-order-bar__summary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bc-space-1);
+  min-width: 0; /* allow the row to shrink before the CTA does */
+}
+
+.bc-sticky-order-bar__meta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bc-space-2);
+  color: var(--bc-color-text-muted);
+}
+
+.bc-sticky-order-bar__dot {
+  color: var(--bc-color-accent-text); /* brass tick — accent only, on dark */
+}
+
+.bc-sticky-order-bar__total {
+  font-family: var(--bc-font-sans);
+  font-size: var(--bc-text-h3);
+  font-weight: var(--bc-weight-bold);
+  line-height: var(--bc-leading-tight);
+  letter-spacing: var(--bc-tracking-tight);
+  color: var(--bc-color-text); /* prominent bone */
+}
+
+/* Keep the CTA from being squeezed by a long total; let the summary truncate. */
+.bc-sticky-order-bar__cta {
+  flex: 0 0 auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bc-sticky-order-bar {
+    animation: none;
+  }
+}

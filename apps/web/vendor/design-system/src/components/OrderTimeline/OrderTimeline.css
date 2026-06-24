@@ -1,0 +1,129 @@
+/* ORDER TIMELINE — vertical stepper for the deposit→dispatch lifecycle.
+ * done · current · upcoming. Mirror the Button reference for token usage. */
+
+.bc-order-timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* Two columns: a fixed rail [node + connector], then the content. */
+.bc-order-timeline__step {
+  display: grid;
+  grid-template-columns: var(--bc-space-6) 1fr; /* 24px rail */
+  column-gap: var(--bc-space-4);
+}
+.bc-order-timeline__step:not(.is-last) {
+  /* Generous vertical rhythm between nodes. */
+  padding-bottom: var(--bc-space-6);
+}
+
+/* --- Rail: node sits at top, connector fills the gap below ----------------- */
+.bc-order-timeline__rail {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-self: center;
+}
+
+.bc-order-timeline__node {
+  position: relative;
+  z-index: var(--bc-z-raised);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: var(--bc-space-6); /* 24px node */
+  height: var(--bc-space-6);
+  border-radius: var(--bc-radius-pill);
+  background: var(--bc-color-bg);
+  box-sizing: border-box;
+  transition:
+    background-color var(--bc-motion-base) var(--bc-ease),
+    border-color var(--bc-motion-base) var(--bc-ease),
+    box-shadow var(--bc-motion-base) var(--bc-ease);
+}
+
+.bc-order-timeline__check {
+  color: var(--bc-color-on-accent);
+  font-size: var(--bc-text-caption);
+  line-height: 1;
+  font-weight: var(--bc-weight-bold);
+}
+
+/* Connector between this node and the next. Starts under the node. */
+.bc-order-timeline__connector {
+  flex: 1 1 auto;
+  width: 2px;
+  margin-top: var(--bc-space-1);
+  margin-bottom: calc(-1 * var(--bc-space-1));
+  background: var(--bc-color-border);
+  border-radius: var(--bc-radius-pill);
+}
+
+/* --- Content -------------------------------------------------------------- */
+.bc-order-timeline__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bc-space-1);
+  /* Optical: align label baseline with the centred node. */
+  padding-top: calc((var(--bc-space-6) - 1em * var(--bc-leading-normal)) / 2);
+  min-height: var(--bc-space-6);
+}
+
+.bc-order-timeline__label {
+  font-family: var(--bc-font-sans);
+  font-size: var(--bc-text-body);
+  font-weight: var(--bc-weight-medium);
+  line-height: var(--bc-leading-normal);
+  color: var(--bc-color-text);
+}
+
+.bc-order-timeline__caption {
+  /* .bc-caption already supplies size + muted colour; nothing more needed. */
+}
+
+/* --- DONE: filled brass disc with check ----------------------------------- */
+.bc-order-timeline__step.is-done .bc-order-timeline__node {
+  background: var(--bc-color-accent);
+  /* AA-safe ink pair is accent / on-accent — check uses on-accent above. */
+}
+.bc-order-timeline__step.is-done .bc-order-timeline__connector {
+  background: var(--bc-color-accent);
+}
+
+/* --- CURRENT: hollow disc, 2px brass ring + soft brass glow + pulse -------- */
+.bc-order-timeline__step.is-current .bc-order-timeline__node {
+  border: 2px solid var(--bc-color-accent);
+  background: var(--bc-color-bg);
+  box-shadow: 0 0 0 3px var(--bc-color-focus-ring);
+  animation: bc-order-timeline-pulse 1.8s var(--bc-ease) infinite;
+}
+.bc-order-timeline__step.is-current .bc-order-timeline__label {
+  font-weight: var(--bc-weight-bold);
+  color: var(--bc-color-text);
+}
+
+/* Soft brass breathing glow. Disabled under prefers-reduced-motion by the
+ * global rule (which forces a single iteration); the static ring remains. */
+@keyframes bc-order-timeline-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 var(--bc-color-focus-ring);
+  }
+  50% {
+    box-shadow: 0 0 0 5px color-mix(in srgb, var(--bc-color-focus-ring) 40%, transparent);
+  }
+}
+
+/* --- UPCOMING: small hollow disc, 1px border, faint label ----------------- */
+.bc-order-timeline__step.is-upcoming .bc-order-timeline__node {
+  width: var(--bc-space-3); /* 12px — visually smaller, centred in the rail */
+  height: var(--bc-space-3);
+  border: 1px solid var(--bc-color-border);
+  background: var(--bc-color-bg);
+}
+.bc-order-timeline__step.is-upcoming .bc-order-timeline__label {
+  color: var(--bc-color-text-muted);
+}
