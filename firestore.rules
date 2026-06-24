@@ -1,0 +1,41 @@
+rules_version = '2';
+
+// Beef Cartel — strict by default. Orders & cycles are written ONLY by the
+// server (Admin SDK, which bypasses these rules). The client never writes them.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Catalogue: world-readable so the storefront renders; never client-writable.
+    match /products/{id} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Order cycles: managed by hand / server. Not exposed to the client.
+    match /orderCycles/{id} {
+      allow read, write: if false;
+    }
+
+    // Orders + their line items: server-only (Admin SDK). Admin reads go through
+    // the gated admin API, not the client SDK.
+    match /orders/{id} {
+      allow read, write: if false;
+      match /items/{itemId} {
+        allow read, write: if false;
+      }
+    }
+
+    // Pre-payment staging + optional aggregates: server-only.
+    match /pendingOrders/{id} {
+      allow read, write: if false;
+    }
+    match /cycleAggregates/{id} {
+      allow read, write: if false;
+    }
+
+    // Default deny.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

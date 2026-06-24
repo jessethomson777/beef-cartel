@@ -1,0 +1,69 @@
+# Firebase App Hosting config for apps/web (runs on Cloud Run, Node runtime).
+# Docs: https://firebase.google.com/docs/app-hosting/configure
+#
+# NOTE on the three secrets: create them in Cloud Secret Manager first, e.g.
+#   firebase apphosting:secrets:set STRIPE_SECRET_KEY
+#   firebase apphosting:secrets:set STRIPE_WEBHOOK_SECRET
+#   firebase apphosting:secrets:set RESEND_API_KEY
+# then grant the backend access when prompted. Do NOT put secret values here.
+
+runConfig:
+  cpu: 1
+  memoryMiB: 512
+  minInstances: 0 # scale to zero when idle (cheap; cold starts on first hit)
+  maxInstances: 5
+  concurrency: 80 # NOTE tune later: lower if requests are CPU-heavy
+
+env:
+  # ---- Public Firebase web config (baked into the client at build) ----
+  # NOTE fill each value from Firebase console → Project settings → Your apps.
+  - variable: NEXT_PUBLIC_FIREBASE_API_KEY
+    value: ""
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+    value: ""
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    value: ""
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    value: ""
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+    value: ""
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_APP_ID
+    value: ""
+    availability: [BUILD, RUNTIME]
+
+  # ---- Public app config ----
+  - variable: NEXT_PUBLIC_APP_URL
+    value: "https://beefcartel.com.au"
+    availability: [BUILD, RUNTIME]
+  # Stripe publishable key is public — plain env is fine. NOTE set the real value.
+  - variable: NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+    value: "pk_test_xxx"
+    availability: [BUILD, RUNTIME]
+
+  # ---- Server-only config (runtime; not secret) ----
+  # FIREBASE_PROJECT_ID helps the Admin SDK resolve the project under ADC.
+  - variable: FIREBASE_PROJECT_ID
+    value: ""
+    availability: [RUNTIME]
+  - variable: ADMIN_EMAILS
+    value: "" # comma-separated admin emails (your brother)
+    availability: [RUNTIME]
+  - variable: SUPPLIER_EMAIL
+    value: ""
+    availability: [RUNTIME]
+  - variable: EMAIL_FROM
+    value: "Beef Cartel <orders@beefcartel.com.au>"
+    availability: [RUNTIME]
+
+  # ---- Secrets (Cloud Secret Manager refs; values never live in this file) ----
+  - variable: STRIPE_SECRET_KEY
+    secret: STRIPE_SECRET_KEY
+  - variable: STRIPE_WEBHOOK_SECRET
+    secret: STRIPE_WEBHOOK_SECRET
+  - variable: RESEND_API_KEY
+    secret: RESEND_API_KEY

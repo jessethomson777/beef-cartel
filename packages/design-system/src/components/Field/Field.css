@@ -1,0 +1,34 @@
+/* FIELD — label + control + helper/error, stacked. Pairs with Input but works
+ * with any control that accepts id / aria-describedby / aria-invalid. */
+
+.bc-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bc-space-2);
+}
+
+.bc-field__label {
+  font-family: var(--bc-font-sans);
+  font-size: var(--bc-text-caption);
+  font-weight: var(--bc-weight-medium);
+  line-height: var(--bc-leading-snug);
+  color: var(--bc-color-text);
+}
+
+/* Brass asterisk — accent ink on a dark surface, AA-safe (accent-text). */
+.bc-field__required {
+  margin-inline-start: var(--bc-space-1);
+  color: var(--bc-color-accent-text);
+}
+
+.bc-field__message {
+  margin: 0;
+}
+
+.bc-field__message--helper {
+  color: var(--bc-color-text-muted);
+}
+
+.bc-field__message--error {
+  color: var(--bc-color-danger);
+}

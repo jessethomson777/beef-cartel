@@ -1,0 +1,174 @@
+/* ============================================================================
+ * BEEF CARTEL — GLOBAL BASE + TYPE UTILITIES
+ * Theme variables (--bc-*) are injected by injectThemeVars() in main.tsx.
+ * Component-specific styles live in each component's own .css file.
+ * ========================================================================== */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background: var(--bc-color-bg);
+  color: var(--bc-color-text);
+  font-family: var(--bc-font-sans);
+  font-size: var(--bc-text-body);
+  line-height: var(--bc-leading-normal);
+  font-weight: var(--bc-weight-regular);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: 'ss01' on; /* Inter alt characters for a sharper UI feel */
+}
+
+#root {
+  min-height: 100dvh;
+  isolation: isolate;
+}
+
+img,
+picture,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+a {
+  color: var(--bc-color-accent-text);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+::selection {
+  background: var(--bc-color-brand);
+  color: var(--bc-color-on-brand);
+}
+
+/* Brass focus ring, only for keyboard users. Components may restyle locally. */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--bc-color-focus-ring);
+  border-radius: var(--bc-radius-sm);
+}
+
+/* Tactile, matte scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--bc-color-border-strong) transparent;
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--bc-color-border-strong);
+  border-radius: var(--bc-radius-pill);
+  border: 2px solid var(--bc-color-bg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ----------------------------------------------------------------------------
+ * TYPE UTILITIES — mirror tokens.text. Use on any element to apply a role.
+ * -------------------------------------------------------------------------- */
+.bc-display {
+  font-family: var(--bc-font-display);
+  font-weight: var(--bc-weight-semibold);
+  /* Token max is 52px; clamps down so it still fits a 390px screen. */
+  font-size: clamp(40px, 11.5vw, var(--bc-text-display));
+  line-height: var(--bc-leading-display);
+  letter-spacing: var(--bc-tracking-tighter);
+  margin: 0;
+}
+.bc-h1 {
+  font-family: var(--bc-font-display);
+  font-weight: var(--bc-weight-semibold);
+  font-size: var(--bc-text-h1);
+  line-height: var(--bc-leading-tight);
+  letter-spacing: var(--bc-tracking-tight);
+  margin: 0;
+}
+.bc-h2 {
+  font-family: var(--bc-font-display);
+  font-weight: var(--bc-weight-semibold);
+  font-size: var(--bc-text-h2);
+  line-height: var(--bc-leading-tight);
+  letter-spacing: var(--bc-tracking-tight);
+  margin: 0;
+}
+.bc-h3 {
+  font-family: var(--bc-font-display);
+  font-weight: var(--bc-weight-medium);
+  font-size: var(--bc-text-h3);
+  line-height: var(--bc-leading-snug);
+  letter-spacing: var(--bc-tracking-tight);
+  margin: 0;
+}
+.bc-h4 {
+  font-family: var(--bc-font-sans);
+  font-weight: var(--bc-weight-semibold);
+  font-size: var(--bc-text-h4);
+  line-height: var(--bc-leading-snug);
+  margin: 0;
+}
+.bc-body-lg {
+  font-size: var(--bc-text-body-lg);
+  line-height: var(--bc-leading-normal);
+}
+.bc-body {
+  font-size: var(--bc-text-body);
+  line-height: var(--bc-leading-normal);
+}
+.bc-caption {
+  font-size: var(--bc-text-caption);
+  line-height: var(--bc-leading-normal);
+  color: var(--bc-color-text-muted);
+}
+.bc-label {
+  font-family: var(--bc-font-sans);
+  font-weight: var(--bc-weight-semibold);
+  font-size: var(--bc-text-label);
+  line-height: 1.2;
+  letter-spacing: var(--bc-tracking-wider);
+  text-transform: uppercase;
+}
+
+/* Numerics — prices and quantities line up with tabular figures. */
+.bc-tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' on, 'lnum' on;
+}
+
+.bc-muted {
+  color: var(--bc-color-text-muted);
+}
+.bc-accent-ink {
+  color: var(--bc-color-accent-text);
+}

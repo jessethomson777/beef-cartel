@@ -1,0 +1,96 @@
+/* INPUT — a recessed "well" with optional leading icon + trailing affix.
+ * The wrapper owns the chrome (border, bg, radius, focus); the bare <input>
+ * is transparent inside it. Mirrors Button's token usage. */
+
+.bc-input {
+  display: flex;
+  align-items: center;
+  gap: var(--bc-space-2);
+  min-height: 44px; /* WCAG tap target */
+  padding-inline: var(--bc-space-4);
+  background: var(--bc-color-bg-inset);
+  border: 1px solid var(--bc-color-border);
+  border-radius: var(--bc-radius-md);
+  color: var(--bc-color-text);
+  transition:
+    border-color var(--bc-motion-base) var(--bc-ease),
+    box-shadow var(--bc-motion-base) var(--bc-ease);
+}
+
+.bc-input__control {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+  /* Reset the native field — the well provides all chrome. */
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-family: var(--bc-font-sans);
+  font-size: var(--bc-text-body);
+  line-height: var(--bc-leading-normal);
+  color: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bc-input__control::placeholder {
+  color: var(--bc-color-text-faint);
+}
+
+/* The well owns focus styling, so suppress the global ring on the inner input. */
+.bc-input__control:focus,
+.bc-input__control:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+.bc-input__control:focus-within {
+  outline: none;
+}
+
+/* Light the whole well when the inner control is focused. */
+.bc-input:focus-within {
+  border-color: var(--bc-color-accent);
+  box-shadow: 0 0 0 3px var(--bc-color-focus-ring);
+}
+
+/* --- Adornments ------------------------------------------------------------ */
+.bc-input__icon {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  font-size: 1.15em;
+  color: var(--bc-color-text-muted);
+}
+
+.bc-input__affix {
+  flex: 0 0 auto;
+  font-family: var(--bc-font-sans);
+  font-size: var(--bc-text-body);
+  color: var(--bc-color-text-muted);
+  user-select: none;
+  white-space: nowrap;
+}
+
+/* --- Invalid --------------------------------------------------------------- */
+.bc-input.is-invalid {
+  border-color: var(--bc-color-danger);
+}
+.bc-input.is-invalid:focus-within {
+  border-color: var(--bc-color-danger);
+  /* Keep the focus ring but tint it danger so the cue survives focus. */
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--bc-color-danger) 40%, transparent);
+}
+
+/* --- Disabled -------------------------------------------------------------- */
+.bc-input.is-disabled {
+  opacity: 0.45;
+}
+.bc-input.is-disabled,
+.bc-input__control:disabled {
+  cursor: not-allowed;
+}
+.bc-input__control:disabled {
+  /* Let clicks on the well surface the not-allowed cursor too. */
+  pointer-events: none;
+}

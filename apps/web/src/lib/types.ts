@@ -1,0 +1,116 @@
+/**
+ * Shared domain types. Money is in AUD DOLLARS (numbers) everywhere in the app
+ * and in Firestore — human-friendly for hand-editing docs. Conversion to Stripe
+ * cents happens server-side at the Stripe boundary only (see lib/money.ts).
+ */
+
+export interface Product {
+  id: string;
+  name: string;
+  description: string;
+  /** Human cut summary, e.g. "Whole striploin · portion-ready". */
+  cuts: string;
+  /** MSA marbling grade label, e.g. "MSA 7", "9+". */
+  grade: string;
+  weightMinKg: number;
+  weightMaxKg: number;
+  /** Deposit charged now (AUD dollars). Server recomputes from this — never the client. */
+  depositAmount: number;
+  /** Estimated full price (AUD dollars). Est. balance = estTotalAmount - depositAmount. */
+  estTotalAmount: number;
+  imageUrl?: string;
+  sort: number;
+  active: boolean;
+}
+
+export type OrderCycleStatus = 'draft' | 'open' | 'closed' | 'dispatched';
+
+export interface OrderCycle {
+  id: string;
+  name: string;
+  /** ISO strings app-side; stored as Firestore Timestamps. */
+  opensAt: string;
+  closesAt: string;
+  dispatchDate: string;
+  status: OrderCycleStatus;
+}
+
+export type OrderStatus =
+  | 'deposit_paid'
+  | 'sent_to_supplier'
+  | 'dispatched'
+  | 'balance_charged'
+  | 'balance_failed';
+
+export interface OrderItem {
+  productId: string;
+  /** Denormalised for display + the supplier PO without extra reads. */
+  name: string;
+  qty: number;
+  unitDeposit: number;
+  estUnitTotal: number;
+}
+
+export interface Order {
+  id: string;
+  cycleId: string | null;
+  customerName: string;
+  email: string;
+  phone: string;
+  deliveryAddress: string;
+  stripeCustomerId: string;
+  stripePaymentMethodId: string | null;
+  depositAmount: number;
+  depositPiId: string;
+  balanceAmount: number | null;
+  balancePiId: string | null;
+  status: OrderStatus;
+  /** Epoch milliseconds (serialisable to the client). */
+  createdAt: number;
+  items?: OrderItem[];
+}
+
+/** A box queued before payment confirms (staging; promoted to an Order by the webhook). */
+export interface PendingOrder {
+  orderId: string;
+  cycleId: string | null;
+  customerName: string;
+  email: string;
+  phone: string;
+  deliveryAddress: string;
+  stripeCustomerId: string;
+  depositPiId: string;
+  depositAmount: number;
+  items: OrderItem[];
+  createdAt: number;
+}
+
+/** Customer details collected on /review. */
+export interface CustomerDetails {
+  name: string;
+  email: string;
+  phone: string;
+  deliveryAddress: string;
+}
+
+/** One catalogue line with quantity, joined with its product (client-side display). */
+export interface CartLine {
+  product: Product;
+  qty: number;
+}
+
+/** Aggregated supplier purchase order for one cycle. */
+export interface POLine {
+  productId: string;
+  name: string;
+  grade: string;
+  qty: number;
+  estWeightKg: number;
+}
+export interface PurchaseOrder {
+  cycleId: string | null;
+  lines: POLine[];
+  totalBoxes: number;
+  totalEstWeightKg: number;
+  orderCount: number;
+}

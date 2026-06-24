@@ -1,0 +1,110 @@
+/* WORDMARK — the Beef Cartel logotype placeholder in the display serif.
+ * sm/md/lg · inline (brass diamond) / stacked (brass hairline rule).
+ * A members-only mark: bone ink on dark, generous widest tracking, brass accent. */
+
+.bc-wordmark {
+  /* --bc-wm-size drives every metric so size variants only set one value. */
+  --bc-wm-size: var(--bc-text-h2);
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--bc-space-2);
+  color: var(--bc-color-text); /* bone ink on dark */
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* --- Eyebrow tagline ------------------------------------------------------- */
+.bc-wordmark__tagline {
+  font-family: var(--bc-font-sans);
+  font-weight: var(--bc-weight-semibold);
+  /* Eyebrow scales gently with the mark but stays small + restrained. */
+  font-size: max(var(--bc-text-label), calc(var(--bc-wm-size) * 0.26));
+  line-height: 1.2;
+  letter-spacing: var(--bc-tracking-widest);
+  text-transform: uppercase;
+  color: var(--bc-color-accent-text); /* brass-as-text on dark — AA-safe */
+}
+
+/* --- Lockup (the two words) ------------------------------------------------ */
+.bc-wordmark__lockup {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bc-wordmark__word {
+  font-family: var(--bc-font-display);
+  /* NOTE: token max weight is black (900) — the speakeasy display flourish. */
+  font-weight: var(--bc-weight-black);
+  font-size: var(--bc-wm-size);
+  line-height: var(--bc-leading-display);
+  letter-spacing: var(--bc-tracking-widest);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* --- Divider: aged-brass diamond (inline) --------------------------------- */
+.bc-wordmark__divider {
+  flex: none;
+  display: block;
+  background: var(--bc-color-accent);
+}
+
+/* ===========================================================================
+ * INLINE — BEEF ◆ CARTEL
+ * ========================================================================= */
+.bc-wordmark--inline .bc-wordmark__lockup {
+  /* gap sits on both sides of the diamond. */
+  gap: calc(var(--bc-wm-size) * 0.42);
+}
+.bc-wordmark--inline .bc-wordmark__divider {
+  width: calc(var(--bc-wm-size) * 0.26);
+  height: calc(var(--bc-wm-size) * 0.26);
+  transform: rotate(45deg); /* square → diamond */
+  border-radius: var(--bc-radius-sm);
+  box-shadow: var(--bc-shadow-e1);
+}
+
+/* ===========================================================================
+ * STACKED — BEEF / hairline / CARTEL
+ * ========================================================================= */
+.bc-wordmark--stacked .bc-wordmark__lockup {
+  flex-direction: column;
+  gap: calc(var(--bc-wm-size) * 0.16);
+}
+.bc-wordmark--stacked .bc-wordmark__word {
+  line-height: var(--bc-leading-tight);
+}
+.bc-wordmark--stacked .bc-wordmark__divider {
+  /* Thin brass rule between the words — spans the narrower word's measure. */
+  width: 100%;
+  height: 1px; /* hairline — no token finer than this */
+  transform: none;
+  border-radius: 0;
+  background: var(--bc-color-accent); /* lines/borders role — matches the inline diamond */
+  /* Soft brass glow so the rule reads on charcoal without shouting. */
+  box-shadow: 0 0 0 1px var(--bc-color-hairline);
+}
+
+/* ===========================================================================
+ * SIZES — only set --bc-wm-size; metrics derive from it.
+ * sm ≈ h4 · md ≈ h2 · lg ≈ display (clamped for a 390px screen).
+ * ========================================================================= */
+.bc-wordmark--sm {
+  --bc-wm-size: var(--bc-text-h4);
+}
+.bc-wordmark--md {
+  --bc-wm-size: var(--bc-text-h2);
+}
+.bc-wordmark--lg {
+  /* Token max is 52px; clamp so the lg mark still fits a mobile viewport. */
+  --bc-wm-size: clamp(var(--bc-text-h1), 9vw, var(--bc-text-display));
+}
+
+/* Keyboard focus (if the mark is made interactive via as="a"/tabindex). */
+.bc-wordmark:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--bc-color-focus-ring);
+  border-radius: var(--bc-radius-sm);
+}

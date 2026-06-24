@@ -1,0 +1,21 @@
+{
+  "name": "beef-cartel-monorepo",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Beef Cartel — premium boxed-beef preorder app. npm-workspace monorepo: packages/design-system (the brand kit) + apps/web (Next.js on Firebase App Hosting).",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=20 <23"
+  },
+  "scripts": {
+    "dev": "npm run dev --workspace apps/web",
+    "build": "npm run build --workspace apps/web",
+    "start": "npm run start --workspace apps/web",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "seed": "npm run seed --workspace apps/web",
+    "dev:ds": "npm run dev --workspace @beef-cartel/design-system"
+  }
+}

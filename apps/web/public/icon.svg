@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Beef Cartel">
+  <!-- Maskable-safe: charcoal bleeds to the edge; mark sits within the inner 80%. -->
+  <rect width="512" height="512" fill="#141210"/>
+  <rect x="40" y="40" width="432" height="432" rx="64" fill="none" stroke="#B08D4F" stroke-opacity="0.35" stroke-width="3"/>
+  <text x="256" y="300" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-weight="700" font-size="220" fill="#C9A86A" letter-spacing="6">BC</text>
+  <text x="256" y="372" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-weight="600" font-size="34" letter-spacing="10" fill="#8C7F6C">BEEF CARTEL</text>
+</svg>

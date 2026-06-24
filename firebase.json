@@ -1,0 +1,11 @@
+{
+  "apphosting": {
+    "backendId": "beef-cartel",
+    "rootDir": "apps/web",
+    "ignore": ["node_modules", ".next", ".git", "**/*.log"]
+  },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  }
+}

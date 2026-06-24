@@ -1,0 +1,105 @@
+/* LISTROW — generic row for review / admin / order screens.
+ * Static <div> by default; renders as <a>/<button> when interactive.
+ * Mirrors Button's token usage — no raw hex, no raw spacing. */
+
+.bc-listrow {
+  display: flex;
+  align-items: center;
+  gap: var(--bc-space-3);
+  width: 100%;
+  min-height: 56px;
+  padding-block: var(--bc-space-3);
+  padding-inline: var(--bc-space-4);
+  background: transparent;
+  color: var(--bc-color-text);
+  text-align: left; /* inherit-friendly default for the <a>/<button> variants */
+  text-decoration: none;
+}
+
+/* --- Columns --------------------------------------------------------------- */
+.bc-listrow__leading {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  color: var(--bc-color-accent-text); /* brass on dark — icons read premium */
+}
+
+/* The flexible middle: stacks title + subtitle, must be allowed to shrink so
+ * ellipsis works (min-width:0 defeats flex's default min-content floor). */
+.bc-listrow__body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--bc-space-1);
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.bc-listrow__title {
+  color: var(--bc-color-text);
+  font-weight: var(--bc-weight-medium);
+  /* single-line ellipsis */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bc-listrow__subtitle {
+  color: var(--bc-color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bc-listrow__trailing {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  margin-inline-start: var(--bc-space-2);
+  color: var(--bc-color-text);
+}
+
+/* The `value` shortcut — tabular figures, can be tinted brass for emphasis by
+ * passing a className/trailing node; default is bone ink. */
+.bc-listrow__value {
+  font-weight: var(--bc-weight-medium);
+  white-space: nowrap;
+}
+
+.bc-listrow__chevron {
+  flex: 0 0 auto;
+  color: var(--bc-color-accent); /* aged brass — a quiet "go" cue */
+  margin-inline-start: calc(-1 * var(--bc-space-1));
+}
+
+/* --- Divider --------------------------------------------------------------- */
+.bc-listrow--divider {
+  border-bottom: 1px solid var(--bc-color-border);
+}
+
+/* --- Interactive (a / button) ---------------------------------------------- */
+.bc-listrow--interactive {
+  min-height: 44px; /* WCAG tap target — but min 56px above already exceeds it */
+  border: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color var(--bc-motion-base) var(--bc-ease);
+}
+.bc-listrow--interactive:hover {
+  background: var(--bc-color-surface-hover);
+}
+.bc-listrow--interactive:active {
+  background: var(--bc-color-surface-raised);
+}
+/* Keep the hover from bleeding the link's default underline onto the title. */
+.bc-listrow--interactive:hover .bc-listrow__title {
+  text-decoration: none;
+}
+
+/* Slightly brighten the chevron on hover for a tactile, confident response. */
+.bc-listrow--interactive:hover .bc-listrow__chevron {
+  color: var(--bc-color-accent-text);
+}

@@ -1,0 +1,209 @@
+/* ============================================================================
+ * /preview SCAFFOLD — demo-only styling (prefix pv-*). Component styling lives
+ * in each component's own .css. This just frames the showcase at ~390px.
+ * ========================================================================== */
+
+.pv-page {
+  min-height: 100dvh;
+  background:
+    radial-gradient(120% 60% at 50% 0%, color-mix(in srgb, var(--bc-color-brand) 12%, transparent) 0%, transparent 60%),
+    var(--bc-color-bg-inset);
+  display: flex;
+  justify-content: center;
+  padding: var(--bc-space-6) var(--bc-space-4) 0;
+}
+
+/* The mobile "device" column — design target ~390px. */
+.pv-device {
+  width: 100%;
+  max-width: 412px;
+  padding-bottom: 140px; /* clearance for the fixed StickyOrderBar */
+}
+
+.pv-hero {
+  text-align: center;
+  padding: var(--bc-space-6) 0 var(--bc-space-8);
+  border-bottom: 1px solid var(--bc-color-hairline);
+  margin-bottom: var(--bc-space-8);
+}
+.pv-hero__sub {
+  margin-top: var(--bc-space-4);
+  color: var(--bc-color-text-muted);
+  max-width: 32ch;
+  margin-inline: auto;
+}
+.pv-hero__meta {
+  margin-top: var(--bc-space-4);
+  display: inline-flex;
+  gap: var(--bc-space-2);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* Sections */
+.pv-section {
+  margin-bottom: var(--bc-space-12);
+}
+.pv-block {
+  margin-top: var(--bc-space-6);
+}
+.pv-block__label {
+  display: block;
+  margin-bottom: var(--bc-space-3);
+  color: var(--bc-color-text-muted);
+}
+.pv-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bc-space-4);
+}
+.pv-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bc-space-3);
+  align-items: center;
+}
+.pv-divider {
+  height: 1px;
+  background: var(--bc-color-border);
+  border: 0;
+  margin: var(--bc-space-6) 0;
+}
+
+/* Colour swatches */
+.pv-swatches {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--bc-space-3);
+}
+.pv-swatch {
+  border: 1px solid var(--bc-color-border);
+  border-radius: var(--bc-radius-md);
+  overflow: hidden;
+  background: var(--bc-color-surface);
+}
+.pv-swatch__chip {
+  height: 56px;
+  border-bottom: 1px solid var(--bc-color-border);
+}
+.pv-swatch__meta {
+  padding: var(--bc-space-2) var(--bc-space-3);
+}
+.pv-swatch__name {
+  display: block;
+  font-size: var(--bc-text-caption);
+  color: var(--bc-color-text);
+}
+.pv-swatch__hex {
+  display: block;
+  font-size: 11px;
+  color: var(--bc-color-text-muted);
+  font-variant-numeric: tabular-nums;
+  text-transform: uppercase;
+}
+
+/* Ramps */
+.pv-ramp {
+  display: flex;
+  border-radius: var(--bc-radius-md);
+  overflow: hidden;
+  border: 1px solid var(--bc-color-border);
+}
+.pv-ramp__step {
+  flex: 1;
+  height: 44px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 3px;
+  font-size: 9px;
+  letter-spacing: 0.02em;
+}
+
+/* Type specimens */
+.pv-type {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bc-space-5);
+}
+.pv-type__row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bc-space-1);
+  padding-bottom: var(--bc-space-4);
+  border-bottom: 1px solid var(--bc-color-border);
+}
+.pv-type__meta {
+  color: var(--bc-color-text-faint);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Spec rows (spacing / radius / elevation) */
+.pv-specs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bc-space-3);
+}
+.pv-spec {
+  display: flex;
+  align-items: center;
+  gap: var(--bc-space-4);
+}
+.pv-spec__key {
+  width: 92px;
+  flex: none;
+  color: var(--bc-color-text-muted);
+  font-size: var(--bc-text-caption);
+  font-variant-numeric: tabular-nums;
+}
+.pv-spacebar {
+  height: 16px;
+  background: var(--bc-color-accent);
+  border-radius: var(--bc-radius-sm);
+}
+.pv-radiusbox {
+  width: 64px;
+  height: 64px;
+  background: var(--bc-color-surface-raised);
+  border: 1px solid var(--bc-color-accent);
+}
+.pv-elevcard {
+  width: 96px;
+  height: 64px;
+  border-radius: var(--bc-radius-md);
+  background: var(--bc-color-surface-raised);
+  border: 1px solid var(--bc-color-border);
+}
+.pv-radii,
+.pv-elevs {
+  display: flex;
+  gap: var(--bc-space-5);
+  flex-wrap: wrap;
+}
+.pv-tile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bc-space-2);
+  align-items: center;
+}
+.pv-tile span {
+  font-size: 11px;
+  color: var(--bc-color-text-muted);
+}
+
+/* Demo surface card to sit components on a realistic surface */
+.pv-surface {
+  background: var(--bc-color-surface);
+  border: 1px solid var(--bc-color-border);
+  border-radius: var(--bc-radius-lg);
+  padding: var(--bc-space-5);
+}
+
+.pv-catalogue {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bc-space-5);
+  margin-top: var(--bc-space-6);
+}
