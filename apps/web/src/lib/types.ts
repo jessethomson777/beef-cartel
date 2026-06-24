@@ -89,12 +89,11 @@ export interface PendingOrder {
   createdAt: number;
 }
 
-/** Customer details collected on /review. */
+/** Customer details collected on /review. Fulfilment is Emerald pickup (no address). */
 export interface CustomerDetails {
   name: string;
   email: string;
   phone: string;
-  deliveryAddress: string;
 }
 
 /** One catalogue line with quantity, joined with its product (client-side display). */

@@ -10,10 +10,16 @@ export const dynamic = 'force-dynamic';
 const DAY = 86_400_000;
 
 /**
- * One-time (idempotent) catalogue seed, run by an admin. Writes the placeholder
- * products into Firestore so every field becomes editable in the Firebase
- * console. Create-if-absent: existing docs are left untouched, so it never
- * clobbers manual edits on a re-run. Also ensures one open cycle exists.
+ * Idempotent catalogue seed, run by an admin. Writes the placeholder products
+ * into Firestore so every field is editable in the Firebase console.
+ *
+ * - New docs: created in full.
+ * - Existing docs: DISPLAY fields are refreshed (name, cuts, grade, weights,
+ *   description, image, sort, active) so re-seeding pushes copy changes — but
+ *   PRICING (depositAmount, estTotalAmount) is preserved so manual price edits
+ *   in the console are never clobbered.
+ *
+ * Also ensures one open cycle exists.
  */
 export async function POST(req: Request) {
   try {
@@ -25,13 +31,20 @@ export async function POST(req: Request) {
 
     const batch = db.batch();
     let created = 0;
+    let refreshed = 0;
     for (const p of PLACEHOLDER_PRODUCTS) {
-      if (have.has(p.id)) continue;
-      const { id, ...rest } = p;
-      batch.set(db.collection('products').doc(id), rest);
-      created++;
+      const { id, depositAmount, estTotalAmount, ...display } = p;
+      const ref = db.collection('products').doc(id);
+      if (have.has(id)) {
+        // Refresh only display fields; keep console-edited prices intact.
+        batch.set(ref, display, { merge: true });
+        refreshed++;
+      } else {
+        batch.set(ref, { ...display, depositAmount, estTotalAmount });
+        created++;
+      }
     }
-    if (created > 0) await batch.commit();
+    await batch.commit();
 
     const open = await db.collection('orderCycles').where('status', '==', 'open').limit(1).get();
     let cycleCreated = false;
@@ -50,7 +63,7 @@ export async function POST(req: Request) {
     return NextResponse.json({
       ok: true,
       created,
-      skipped: PLACEHOLDER_PRODUCTS.length - created,
+      refreshed,
       total: PLACEHOLDER_PRODUCTS.length,
       cycleCreated,
     });

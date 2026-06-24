@@ -5,6 +5,7 @@ import { getProductsByIds } from '@/lib/server/products';
 import { getOpenCycle } from '@/lib/server/cycles';
 import { writePendingOrder } from '@/lib/server/orders';
 import { toCents, weightRange } from '@/lib/money';
+import { PICKUP_ADDRESS } from '@/lib/fulfilment';
 import type { OrderItem, PendingOrder } from '@/lib/types';
 
 export const runtime = 'nodejs';
@@ -12,7 +13,7 @@ export const dynamic = 'force-dynamic';
 
 interface Body {
   items: { productId: string; qty: number }[];
-  customer: { name: string; email: string; phone: string; deliveryAddress: string };
+  customer: { name: string; email: string; phone: string };
   /** Client-generated id so retries of the same submission collapse to one intent. */
   requestId?: string;
 }
@@ -29,7 +30,7 @@ export async function POST(req: Request) {
   if (!Array.isArray(items) || items.length === 0) {
     return NextResponse.json({ error: 'Your order is empty.' }, { status: 400 });
   }
-  if (!customer?.name || !customer?.email || !customer?.deliveryAddress) {
+  if (!customer?.name || !customer?.email) {
     return NextResponse.json({ error: 'Missing customer details.' }, { status: 400 });
   }
 
@@ -100,7 +101,7 @@ export async function POST(req: Request) {
       customerName: customer.name,
       email: customer.email,
       phone: customer.phone ?? '',
-      deliveryAddress: customer.deliveryAddress,
+      deliveryAddress: PICKUP_ADDRESS, // pickup-only fulfilment
       stripeCustomerId: stripeCustomer.id,
       depositPiId: intent.id,
       depositAmount,

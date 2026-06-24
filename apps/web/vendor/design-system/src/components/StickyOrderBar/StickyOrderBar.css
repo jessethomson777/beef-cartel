@@ -14,12 +14,14 @@
   animation: bc-sticky-order-bar-in var(--bc-motion-slow) var(--bc-ease-emphasized) both;
 }
 
+/* Fade in only — NO transform. A lingering transform on a position:fixed element
+   breaks fixed positioning on iOS Safari (the bar detaches and scrolls). */
 @keyframes bc-sticky-order-bar-in {
   from {
-    transform: translateY(100%);
+    opacity: 0;
   }
   to {
-    transform: translateY(0);
+    opacity: 1;
   }
 }
 

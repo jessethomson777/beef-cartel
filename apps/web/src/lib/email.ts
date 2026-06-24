@@ -2,6 +2,7 @@ import 'server-only';
 import { Resend } from 'resend';
 import type { Order, OrderItem, PurchaseOrder } from './types';
 import { formatAUD } from './money';
+import { PICKUP_ADDRESS } from './fulfilment';
 
 function client(): Resend {
   const key = process.env.RESEND_API_KEY;
@@ -55,6 +56,11 @@ export async function sendDepositReceipt(order: Order): Promise<void> {
       <tr><td style="color:#B8AC98">Deposit paid today</td><td style="text-align:right;font-weight:700;color:#F4EFE6">${formatAUD(order.depositAmount)}</td></tr>
       <tr><td style="color:#8C7F6C;font-size:13px;padding-top:6px">Est. balance on dispatch</td><td style="text-align:right;color:#8C7F6C;font-size:13px;padding-top:6px">${formatAUD(estBalance)}</td></tr>
     </table>
+    <div style="border:1px solid #B08D4F;border-radius:10px;padding:16px;margin-top:20px">
+      <p style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#B08D4F;margin:0">Pickup — Emerald only</p>
+      <p style="font-size:16px;color:#F4EFE6;margin:8px 0 0;font-weight:600">${PICKUP_ADDRESS}</p>
+      <p style="font-size:13px;color:#8C7F6C;margin:8px 0 0;line-height:1.5">Laine's cold room. We'll email you when your boxes are weighed and ready to collect — please wait for that email before coming by.</p>
+    </div>
     <p style="font-size:12px;color:#8C7F6C;line-height:1.5;margin-top:16px"><span style="color:#B08D4F">*</span> Final price is billed by the actual weight of your box at dispatch. We'll charge the balance to your saved card and email a receipt.</p>`;
   await client().emails.send({
     from: from(),

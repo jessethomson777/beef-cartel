@@ -6,6 +6,7 @@ import { BoxCard, StickyOrderBar, SectionHeader, Wordmark } from '@beef-cartel/d
 import { PageShell } from './page-shell';
 import { useCart } from './cart-provider';
 import { weightRange, estBalance } from '@/lib/money';
+import { PICKUP_REGION } from '@/lib/fulfilment';
 import type { Product } from '@/lib/types';
 
 const GRADES = ['6/7', '8/9', '9+'] as const;
@@ -52,6 +53,21 @@ export function Catalogue({ products }: { products: Product[] }) {
         >
           Wholesale Wagyu cuts, by the box — MSA 6/7 through 9+. Reserve yours with a deposit, direct from the source.
         </p>
+        <div
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 'var(--bc-space-2)',
+            marginTop: 'var(--bc-space-5)',
+            padding: 'var(--bc-space-2) var(--bc-space-4)',
+            border: '1px solid var(--bc-color-accent)',
+            borderRadius: 'var(--bc-radius-pill)',
+            background: 'var(--bc-color-surface)',
+          }}
+        >
+          <span style={{ color: 'var(--bc-color-accent)' }}>●</span>
+          <span className="bc-label">Pickup only — {PICKUP_REGION}</span>
+        </div>
       </section>
 
       <div style={{ padding: 'var(--bc-space-8) var(--bc-space-4) 0' }}>

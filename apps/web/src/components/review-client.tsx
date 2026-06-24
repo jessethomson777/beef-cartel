@@ -7,6 +7,7 @@ import { Button, ListRow, Field, Input, SectionHeader } from '@beef-cartel/desig
 import { PageShell, BrandHeader } from '@/components/page-shell';
 import { useCart } from '@/components/cart-provider';
 import { formatAUD, estBalance, weightRange } from '@/lib/money';
+import { PICKUP_REGION } from '@/lib/fulfilment';
 import type { CustomerDetails, Product } from '@/lib/types';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -21,16 +22,15 @@ export function ReviewClient({ products }: { products: Product[] }) {
   }, [products, setCatalog]);
 
   const [form, setForm] = useState<CustomerDetails>(
-    customer ?? { name: '', email: '', phone: '', deliveryAddress: '' },
+    customer ?? { name: '', email: '', phone: '' },
   );
   const [touched, setTouched] = useState(false);
 
   const errors = {
     name: !form.name.trim() ? 'Enter your name.' : '',
     email: !EMAIL_RE.test(form.email) ? 'Enter a valid email.' : '',
-    deliveryAddress: !form.deliveryAddress.trim() ? 'Enter a delivery address.' : '',
   };
-  const valid = !errors.name && !errors.email && !errors.deliveryAddress;
+  const valid = !errors.name && !errors.email;
 
   const set = (k: keyof CustomerDetails) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((f) => ({ ...f, [k]: e.target.value }));
@@ -123,9 +123,31 @@ export function ReviewClient({ products }: { products: Product[] }) {
         </div>
       </div>
 
+      {/* Pickup notice — Emerald only */}
+      <div style={{ padding: 'var(--bc-space-6) var(--bc-space-4) 0' }}>
+        <SectionHeader eyebrow="Pickup" title="Collect from Emerald" />
+        <div
+          style={{
+            marginTop: 'var(--bc-space-4)',
+            background: 'var(--bc-color-surface)',
+            border: '1px solid var(--bc-color-hairline)',
+            borderRadius: 'var(--bc-radius-lg)',
+            padding: 'var(--bc-space-4)',
+          }}
+        >
+          <p className="bc-body">
+            <span style={{ color: 'var(--bc-color-accent)' }}>●</span> Pickup only — {PICKUP_REGION}.
+          </p>
+          <p className="bc-caption bc-muted" style={{ marginTop: 'var(--bc-space-2)' }}>
+            Collect your boxes from our Emerald cold room. We’ll email the address and pickup
+            details once your deposit is confirmed.
+          </p>
+        </div>
+      </div>
+
       {/* Customer details */}
       <div style={{ padding: 'var(--bc-space-6) var(--bc-space-4) 0' }}>
-        <SectionHeader eyebrow="Delivery" title="Your details" />
+        <SectionHeader eyebrow="Your details" title="Who’s collecting?" />
       </div>
       <form
         onSubmit={(e) => {
@@ -140,16 +162,8 @@ export function ReviewClient({ products }: { products: Product[] }) {
         <Field label="Email" required error={touched ? errors.email : ''} helper="Receipts and dispatch updates go here.">
           <Input value={form.email} onChange={set('email')} type="email" autoComplete="email" placeholder="you@example.com" />
         </Field>
-        <Field label="Phone">
+        <Field label="Phone" helper="So we can reach you about pickup.">
           <Input value={form.phone} onChange={set('phone')} type="tel" autoComplete="tel" placeholder="04xx xxx xxx" />
-        </Field>
-        <Field label="Delivery address" required error={touched ? errors.deliveryAddress : ''}>
-          <Input
-            value={form.deliveryAddress}
-            onChange={set('deliveryAddress')}
-            autoComplete="street-address"
-            placeholder="Street, suburb, state, postcode"
-          />
         </Field>
 
         <Button type="submit" size="large" fullWidth>

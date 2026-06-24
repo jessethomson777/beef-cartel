@@ -31,13 +31,13 @@ interface Cut {
 
 // Order here = display order within each grade.
 const CUTS: Cut[] = [
-  { slug: 'strip-loin', name: 'Strip Loin', cuts: 'Whole striploin · portion-ready', description: 'The steakhouse classic — even marbling, clean fat cap, faultless on the grill.', weightMinKg: 1.2, weightMaxKg: 1.5, baseEst: 220 },
-  { slug: 'cube-roll', name: 'Cube Roll', cuts: 'Cube roll · scotch fillet', description: 'Ribeye / scotch fillet with the prized eye of fat. Rich, buttery, forgiving.', weightMinKg: 1.3, weightMaxKg: 1.6, baseEst: 245 },
-  { slug: 'eye-fillet', name: 'Eye Fillet', cuts: 'Whole tenderloin · trimmed', description: 'The tenderloin — lean and astonishingly tender. Our most prized cut.', weightMinKg: 0.9, weightMaxKg: 1.2, baseEst: 290 },
-  { slug: 'tomahawk', name: 'Tomahawk', cuts: 'Bone-in ribeye · long frenched bone', description: 'The showpiece. Bone-in ribeye with a dramatic long bone — built to impress.', weightMinKg: 1.2, weightMaxKg: 1.6, baseEst: 265 },
-  { slug: 'rump-cap', name: 'Rump Cap', cuts: 'Rump cap · picanha, fat on', description: 'The Brazilian churrasco icon — fat cap on, sliced thick. Huge flavour, huge value.', weightMinKg: 1.0, weightMaxKg: 1.3, baseEst: 150 },
+  { slug: 'strip-loin', name: 'Strip Loin', cuts: 'Whole strip loin', description: 'The steakhouse classic — even marbling, clean fat cap, faultless on the grill.', weightMinKg: 1.2, weightMaxKg: 1.5, baseEst: 220 },
+  { slug: 'cube-roll', name: 'Cube Roll', cuts: 'Whole cube roll (scotch fillet)', description: 'Ribeye / scotch fillet with the prized eye of fat. Rich, buttery, forgiving.', weightMinKg: 1.3, weightMaxKg: 1.6, baseEst: 245 },
+  { slug: 'eye-fillet', name: 'Eye Fillet', cuts: 'Whole eye fillet (tenderloin)', description: 'The tenderloin — lean and astonishingly tender. Our most prized cut.', weightMinKg: 0.9, weightMaxKg: 1.2, baseEst: 290 },
+  { slug: 'tomahawk', name: 'Tomahawk', cuts: 'Whole tomahawk (bone-in ribeye)', description: 'The showpiece. Bone-in ribeye with a dramatic long bone — built to impress.', weightMinKg: 1.2, weightMaxKg: 1.6, baseEst: 265 },
+  { slug: 'rump-cap', name: 'Rump Cap', cuts: 'Whole rump cap (picanha)', description: 'The Brazilian churrasco icon — fat cap on. Huge flavour, huge value.', weightMinKg: 1.0, weightMaxKg: 1.3, baseEst: 150 },
   { slug: 'tri-tip', name: 'Tri Tip', cuts: 'Whole tri tip', description: 'A Santa Maria favourite — lean, beefy and quick on the grill or smoker.', weightMinKg: 1.0, weightMaxKg: 1.4, baseEst: 160 },
-  { slug: 'brisket', name: 'Brisket', cuts: 'Whole packer brisket', description: 'Point and flat, built for low-and-slow. A full day of smoke, deep reward.', weightMinKg: 3.5, weightMaxKg: 5.0, baseEst: 190 },
+  { slug: 'brisket', name: 'Brisket', cuts: 'Whole brisket', description: 'Point and flat, built for low-and-slow. A full day of smoke, deep reward.', weightMinKg: 3.5, weightMaxKg: 5.0, baseEst: 190 },
 ];
 
 const GRADES: { grade: Grade; key: string; estMult: number }[] = [

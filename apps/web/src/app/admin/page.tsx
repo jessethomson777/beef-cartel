@@ -366,7 +366,9 @@ function OrderCard({
           <ListRow key={i.productId} title={`${i.name} × ${i.qty}`} value={formatAUD(i.unitDeposit * i.qty)} divider={false} />
         ))}
       </div>
-      <div className="bc-caption bc-muted" style={{ whiteSpace: 'pre-wrap' }}>{order.deliveryAddress}</div>
+      <div className="bc-caption bc-muted">
+        Pickup · Emerald{order.phone ? ` · ${order.phone}` : ''}
+      </div>
 
       <div className="bc-caption" style={{ marginTop: 'var(--bc-space-2)' }}>
         Deposit paid: <span className="bc-tnum">{formatAUD(order.depositAmount)}</span>

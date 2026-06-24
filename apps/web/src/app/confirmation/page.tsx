@@ -6,7 +6,15 @@ import { getOrder, getPendingOrder, finalizeOrderFromPending } from '@/lib/serve
 import { stripe } from '@/lib/stripe';
 import { sendDepositReceipt } from '@/lib/email';
 import { formatAUD } from '@/lib/money';
+import { PICKUP_ADDRESS } from '@/lib/fulfilment';
 import type { Order, OrderItem, OrderStatus, PendingOrder } from '@/lib/types';
+
+const PICKUP_STEPS = [
+  { label: 'Ordered' },
+  { label: 'Sent to supplier' },
+  { label: 'Ready at Emerald' },
+  { label: 'Balance charged' },
+];
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Order confirmed' };
@@ -142,10 +150,34 @@ export default async function ConfirmationPage({
         </div>
       )}
 
+      {confirmed && (
+        <div style={{ padding: 'var(--bc-space-8) var(--bc-space-4) 0' }}>
+          <SectionHeader eyebrow="Pickup" title="Collect from Emerald" />
+          <div
+            style={{
+              marginTop: 'var(--bc-space-4)',
+              background: 'var(--bc-color-surface-raised)',
+              border: '1px solid var(--bc-color-accent)',
+              borderRadius: 'var(--bc-radius-lg)',
+              padding: 'var(--bc-space-5)',
+            }}
+          >
+            <p className="bc-label bc-muted">Laine’s cold room</p>
+            <p className="bc-h3" style={{ fontFamily: 'var(--bc-font-sans)', marginTop: 'var(--bc-space-2)' }}>
+              {PICKUP_ADDRESS}
+            </p>
+            <p className="bc-caption bc-muted" style={{ marginTop: 'var(--bc-space-3)' }}>
+              Pickup only — we’ll email you the moment your boxes are weighed and ready to collect.
+              Please don’t come by until you’ve had that email.
+            </p>
+          </div>
+        </div>
+      )}
+
       <div style={{ padding: 'var(--bc-space-8) var(--bc-space-4) 0' }}>
         <SectionHeader eyebrow="What happens next" title="Your order timeline" />
         <div style={{ marginTop: 'var(--bc-space-5)' }}>
-          <OrderTimeline current={currentStep(status)} />
+          <OrderTimeline current={currentStep(status)} steps={PICKUP_STEPS} />
         </div>
       </div>
 
