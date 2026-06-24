@@ -203,7 +203,7 @@ function Dashboard({ user }: { user: User }) {
       const res = await authedFetch('/api/admin/seed-products', { method: 'POST' });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || 'Seed failed');
-      setSeedMsg(`Catalogue seeded — ${json.created} added, ${json.skipped} already present${json.cycleCreated ? ', open cycle created' : ''}. Edit products in Firebase → Firestore → products.`);
+      setSeedMsg(`Catalogue synced — ${json.created} added, ${json.refreshed} refreshed${json.cycleCreated ? ', open cycle created' : ''}. Names/cuts/weights updated; prices preserved. Edit further in Firebase → Firestore → products.`);
       load();
     } catch (e) {
       setSeedMsg((e as Error).message);
@@ -233,10 +233,10 @@ function Dashboard({ user }: { user: User }) {
         {po.orderCount} orders
       </p>
 
-      {/* One-time catalogue seed → makes every product editable in Firestore. */}
+      {/* Catalogue sync → seeds new products and refreshes copy/weights in Firestore (prices preserved). */}
       <div>
         <Button variant="ghost" onClick={seedCatalogue} loading={seedBusy}>
-          Seed catalogue to Firestore
+          Sync catalogue to Firestore
         </Button>
         {seedMsg && (
           <p className="bc-caption" style={{ marginTop: 'var(--bc-space-2)', color: 'var(--bc-color-text-muted)' }}>
