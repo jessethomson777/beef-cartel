@@ -398,7 +398,13 @@ function OrderCard({
 
       <div style={{ margin: 'var(--bc-space-3) 0' }}>
         {(order.items ?? []).map((i) => (
-          <ListRow key={i.productId} title={`${i.name} × ${i.qty}`} value={formatAUD(i.unitDeposit * i.qty)} divider={false} />
+          <ListRow
+            key={i.productId}
+            title={`${i.name} × ${i.qty}`}
+            subtitle={i.grade ? `MSA ${i.grade}${i.weightRange ? ` · ${i.weightRange}` : ''}` : undefined}
+            value={formatAUD(i.unitDeposit * i.qty)}
+            divider={false}
+          />
         ))}
       </div>
       <div className="bc-caption bc-muted">
@@ -415,23 +421,26 @@ function OrderCard({
       </div>
 
       {!done && (
-        <div style={{ display: 'flex', gap: 'var(--bc-space-3)', alignItems: 'flex-end', marginTop: 'var(--bc-space-4)' }}>
-          <div style={{ flex: 1 }}>
-            <Field label="Final total $">
-              <Input value={finalTotal} onChange={(e) => editTotal(e.target.value)} inputMode="decimal" placeholder="0.00" />
-            </Field>
-          </div>
-          <div style={{ width: 96 }}>
-            <Field label="Weight kg">
-              <Input value={weight} onChange={(e) => editWeight(e.target.value)} inputMode="decimal" placeholder="kg" />
-            </Field>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--bc-space-3)', marginTop: 'var(--bc-space-4)' }}>
+          <div style={{ display: 'flex', gap: 'var(--bc-space-3)' }}>
+            <div style={{ flex: 3, minWidth: 0 }}>
+              <Field label="Final total $">
+                <Input value={finalTotal} onChange={(e) => editTotal(e.target.value)} inputMode="decimal" placeholder="0.00" />
+              </Field>
+            </div>
+            <div style={{ flex: 2, minWidth: 0 }}>
+              <Field label="Weight (kg)">
+                <Input value={weight} onChange={(e) => editWeight(e.target.value)} inputMode="decimal" placeholder="0.0" />
+              </Field>
+            </div>
           </div>
           <Button
             onClick={onChargeClick}
             loading={busy}
+            fullWidth
             variant={pendingBalance != null ? 'primary' : 'secondary'}
           >
-            {pendingBalance != null ? `Confirm · ${formatAUD(pendingBalance)}` : 'Charge balance'}
+            {pendingBalance != null ? `Confirm · charge ${formatAUD(pendingBalance)}` : 'Charge balance'}
           </Button>
         </div>
       )}
