@@ -311,13 +311,24 @@ function OrderCard({
   const [weight, setWeight] = useState('');
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  // Two-step charge: the first click previews the computed balance; the second
+  // confirms and fires. Editing either input cancels a pending confirmation so a
+  // stale amount can never be charged by mistake.
+  const [pendingBalance, setPendingBalance] = useState<number | null>(null);
 
-  const charge = async () => {
-    const amount = Number(finalTotal);
-    if (!amount || amount <= 0) {
-      setMsg('Enter the final total price.');
-      return;
-    }
+  const firstName = order.customerName.split(' ')[0] || 'this customer';
+
+  const editTotal = (v: string) => {
+    setFinalTotal(v);
+    setPendingBalance(null);
+    setMsg(null);
+  };
+  const editWeight = (v: string) => {
+    setWeight(v);
+    setPendingBalance(null);
+  };
+
+  const sendCharge = async () => {
     setBusy(true);
     setMsg(null);
     try {
@@ -326,7 +337,7 @@ function OrderCard({
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
           orderId: order.id,
-          finalTotalAmount: amount,
+          finalTotalAmount: Number(finalTotal),
           finalWeightKg: weight ? Number(weight) : undefined,
         }),
       });
@@ -339,7 +350,31 @@ function OrderCard({
       setMsg((e as Error).message);
     } finally {
       setBusy(false);
+      setPendingBalance(null);
     }
+  };
+
+  const onChargeClick = () => {
+    // Second click on an armed confirmation → fire.
+    if (pendingBalance != null) {
+      void sendCharge();
+      return;
+    }
+    // First click → validate and preview the math (no money moves yet).
+    const amount = Number(finalTotal);
+    if (!finalTotal.trim() || !Number.isFinite(amount) || amount <= 0) {
+      setMsg('Enter the final total price.');
+      return;
+    }
+    const balance = Math.round((amount - order.depositAmount) * 100) / 100;
+    if (balance <= 0) {
+      setMsg(`Final total must be more than the ${formatAUD(order.depositAmount)} deposit already paid.`);
+      return;
+    }
+    setPendingBalance(balance);
+    setMsg(
+      `${formatAUD(amount)} total − ${formatAUD(order.depositAmount)} deposit = charge ${formatAUD(balance)} to ${firstName}’s card. Tap Confirm to charge.`,
+    );
   };
 
   const done = order.status === 'balance_charged';
@@ -383,16 +418,20 @@ function OrderCard({
         <div style={{ display: 'flex', gap: 'var(--bc-space-3)', alignItems: 'flex-end', marginTop: 'var(--bc-space-4)' }}>
           <div style={{ flex: 1 }}>
             <Field label="Final total $">
-              <Input value={finalTotal} onChange={(e) => setFinalTotal(e.target.value)} inputMode="decimal" placeholder="0.00" />
+              <Input value={finalTotal} onChange={(e) => editTotal(e.target.value)} inputMode="decimal" placeholder="0.00" />
             </Field>
           </div>
           <div style={{ width: 96 }}>
             <Field label="Weight kg">
-              <Input value={weight} onChange={(e) => setWeight(e.target.value)} inputMode="decimal" placeholder="kg" />
+              <Input value={weight} onChange={(e) => editWeight(e.target.value)} inputMode="decimal" placeholder="kg" />
             </Field>
           </div>
-          <Button onClick={charge} loading={busy}>
-            Charge balance
+          <Button
+            onClick={onChargeClick}
+            loading={busy}
+            variant={pendingBalance != null ? 'primary' : 'secondary'}
+          >
+            {pendingBalance != null ? `Confirm · ${formatAUD(pendingBalance)}` : 'Charge balance'}
           </Button>
         </div>
       )}
