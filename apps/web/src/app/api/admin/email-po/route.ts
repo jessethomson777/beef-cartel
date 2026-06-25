@@ -13,8 +13,24 @@ export async function POST(req: Request) {
     await requireAdmin(req);
 
     const body = (await req.json().catch(() => ({}))) as { cycleId?: string };
-    const cycle = body.cycleId ? await getCycle(body.cycleId) : await getOpenCycle();
-    const cycleId = cycle?.id ?? body.cycleId ?? null;
+    const requested = body.cycleId;
+    // A PO is always sent for ONE concrete cycle. 'all'/'unassigned' aren't
+    // PO-able; a missing id falls back to the open cycle. If nothing resolves to
+    // a real cycle, reject — never let a null cycleId fan out to every order
+    // (which would mark the whole database sent_to_supplier).
+    const cycle =
+      requested && requested !== 'all' && requested !== 'unassigned'
+        ? await getCycle(requested)
+        : requested
+          ? null
+          : await getOpenCycle();
+    const cycleId = cycle?.id ?? null;
+    if (!cycleId) {
+      return NextResponse.json(
+        { error: 'Pick a specific cycle to email its PO — no cycle resolved.' },
+        { status: 400 },
+      );
+    }
 
     const orders = await listCycleOrders(cycleId);
     if (orders.length === 0) {

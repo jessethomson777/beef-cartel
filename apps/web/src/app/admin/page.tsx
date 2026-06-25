@@ -17,8 +17,15 @@ import type { Order, OrderCycle, OrderStatus, PurchaseOrder } from '@/lib/types'
 
 const EMAIL_KEY = 'bc-admin-email';
 
+interface CycleSummary extends OrderCycle {
+  orderCount: number;
+}
+
 interface AdminData {
   cycle: OrderCycle | null;
+  cycles: CycleSummary[];
+  activeCycleId: string | null;
+  scope: 'all' | 'unassigned' | 'cycle';
   orders: Order[];
   po: PurchaseOrder;
 }
@@ -152,6 +159,8 @@ function Dashboard({ user }: { user: User }) {
   const [poMsg, setPoMsg] = useState<string | null>(null);
   const [seedMsg, setSeedMsg] = useState<string | null>(null);
   const [seedBusy, setSeedBusy] = useState(false);
+  // '' = default (server picks the active open cycle) · 'all' = every cycle · else a cycle id.
+  const [selected, setSelected] = useState('');
 
   const authedFetch = useCallback(
     async (url: string, init?: RequestInit) => {
@@ -167,24 +176,31 @@ function Dashboard({ user }: { user: User }) {
   const load = useCallback(async () => {
     setError(null);
     try {
-      const res = await authedFetch('/api/admin/orders');
+      const qs = selected ? `?cycleId=${encodeURIComponent(selected)}` : '';
+      const res = await authedFetch(`/api/admin/orders${qs}`);
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || 'Failed to load orders');
       setData(json as AdminData);
     } catch (e) {
       setError((e as Error).message);
     }
-  }, [authedFetch]);
+  }, [authedFetch, selected]);
 
   useEffect(() => {
     load();
   }, [load]);
 
   const emailPO = async () => {
+    const targetId = data?.cycle?.id;
+    if (!targetId) return;
     setPoBusy(true);
     setPoMsg(null);
     try {
-      const res = await authedFetch('/api/admin/email-po', { method: 'POST' });
+      const res = await authedFetch('/api/admin/email-po', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ cycleId: targetId }),
+      });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || 'Failed to send PO');
       setPoMsg(`PO emailed — ${json.totalBoxes} boxes, ${json.marked} orders marked sent.`);
@@ -223,15 +239,67 @@ function Dashboard({ user }: { user: User }) {
     return <p className="bc-body bc-muted" style={{ padding: 'var(--bc-space-4)' }}>Loading orders…</p>;
   }
 
-  const { cycle, orders, po } = data;
+  const { cycle, cycles, activeCycleId, scope, orders, po } = data;
+  // The select value must always match a rendered <option>. Prefer the optimistic
+  // local `selected`, else what the server returned ('all' | 'unassigned' | a real
+  // cycle id); if neither is a real option, fall back to 'all' (always present).
+  const optionIds = new Set<string>(['all', ...cycles.map((c) => c.id)]);
+  const candidate = selected || (scope === 'cycle' ? cycle?.id ?? 'all' : scope);
+  const viewValue = optionIds.has(candidate) ? candidate : 'all';
+  const activeCycleName = cycles.find((c) => c.id === activeCycleId)?.name ?? null;
+  const viewingInactive = scope === 'cycle' && !!cycle && cycle.id !== activeCycleId;
 
   return (
     <div style={{ padding: 'var(--bc-space-4)', display: 'flex', flexDirection: 'column', gap: 'var(--bc-space-6)' }}>
-      <p className="bc-caption bc-muted">
-        Cycle: <strong style={{ color: 'var(--bc-color-text)' }}>{cycle?.name ?? '— (no open cycle)'}</strong>
-        {' · '}
-        {po.orderCount} orders
-      </p>
+      {/* Cycle switcher — view/PO/charge any cycle independently. */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--bc-space-2)' }}>
+        <label htmlFor="cycle-switch" className="bc-label bc-muted">
+          Viewing cycle
+        </label>
+        <select
+          id="cycle-switch"
+          value={viewValue}
+          onChange={(e) => setSelected(e.target.value)}
+          style={{
+            minHeight: 44,
+            padding: '0 var(--bc-space-4)',
+            background: 'var(--bc-color-bg-inset)',
+            border: '1px solid var(--bc-color-border)',
+            borderRadius: 'var(--bc-radius-md)',
+            color: 'var(--bc-color-text)',
+            fontFamily: 'var(--bc-font-sans)',
+            fontSize: 'var(--bc-text-body)',
+          }}
+        >
+          {cycles.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.id === 'unassigned'
+                ? `Unassigned · ${c.orderCount} order${c.orderCount === 1 ? '' : 's'}`
+                : `${c.name} · ${c.status}${c.id === activeCycleId ? ' — taking orders' : ''} · ${c.orderCount} order${
+                    c.orderCount === 1 ? '' : 's'
+                  }`}
+            </option>
+          ))}
+          <option value="all">All cycles · everything</option>
+        </select>
+        {scope === 'all' && (
+          <p className="bc-caption bc-muted">
+            Showing every order across all cycles. New orders attach to{' '}
+            <strong style={{ color: 'var(--bc-color-text)' }}>{activeCycleName ?? '— (no open cycle)'}</strong>.
+          </p>
+        )}
+        {scope === 'unassigned' && (
+          <p className="bc-caption bc-muted">
+            These orders were placed while no cycle was open. Open or assign a cycle to include them in a PO.
+          </p>
+        )}
+        {viewingInactive && (
+          <p className="bc-caption" style={{ color: 'var(--bc-color-warning)' }}>
+            This cycle isn’t taking new orders — those attach to{' '}
+            <strong>{activeCycleName ?? '— (no open cycle)'}</strong>.
+          </p>
+        )}
+      </div>
 
       {/* Catalogue sync → seeds new products and refreshes copy/weights in Firestore (prices preserved). */}
       <div>
@@ -278,8 +346,13 @@ function Dashboard({ user }: { user: User }) {
           </div>
         </div>
         <div style={{ marginTop: 'var(--bc-space-5)' }}>
-          <Button onClick={emailPO} loading={poBusy} disabled={po.totalBoxes === 0} fullWidth>
-            Email PO to supplier
+          <Button
+            onClick={emailPO}
+            loading={poBusy}
+            disabled={po.totalBoxes === 0 || scope !== 'cycle' || !cycle}
+            fullWidth
+          >
+            {scope === 'cycle' && cycle ? `Email PO to supplier — ${cycle.name}` : 'Pick a single cycle to email its PO'}
           </Button>
           {poMsg && <p className="bc-caption" style={{ marginTop: 'var(--bc-space-3)', color: 'var(--bc-color-text-muted)' }}>{poMsg}</p>}
         </div>
@@ -287,7 +360,10 @@ function Dashboard({ user }: { user: User }) {
 
       {/* Orders */}
       <section>
-        <SectionHeader eyebrow={`${orders.length} orders`} title="This cycle" />
+        <SectionHeader
+          eyebrow={`${orders.length} order${orders.length === 1 ? '' : 's'}`}
+          title={scope === 'all' ? 'All cycles' : scope === 'unassigned' ? 'Unassigned orders' : cycle?.name ?? 'Orders'}
+        />
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--bc-space-4)', marginTop: 'var(--bc-space-4)' }}>
           {orders.map((o) => (
             <OrderCard key={o.id} order={o} authedFetch={authedFetch} onChanged={load} />

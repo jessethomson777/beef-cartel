@@ -129,13 +129,38 @@ export async function getOrder(orderId: string): Promise<Order | null> {
   return toOrder(orderId, doc.data()!, await readItems(orderId));
 }
 
+/**
+ * Orders for a view. `null` → every order; a cycle id → that cycle; the literal
+ * `'unassigned'` → orders with no cycle (cycleId null, e.g. placed when nothing
+ * was open).
+ */
 export async function listCycleOrders(cycleId: string | null): Promise<Order[]> {
   const col = db().collection('orders');
-  const snap = cycleId ? await col.where('cycleId', '==', cycleId).get() : await col.get();
+  const snap =
+    cycleId === 'unassigned'
+      ? await col.where('cycleId', '==', null).get()
+      : cycleId
+        ? await col.where('cycleId', '==', cycleId).get()
+        : await col.get();
   const orders = await Promise.all(
     snap.docs.map(async (d) => toOrder(d.id, d.data(), await readItems(d.id))),
   );
   return orders.sort((a, b) => b.createdAt - a.createdAt);
+}
+
+/**
+ * Order counts grouped by cycleId, for the admin switcher. Unassigned orders
+ * (cycleId null) bucket under the '' key. Cheap: reads the orders collection
+ * once and skips the item subcollections.
+ */
+export async function countOrdersByCycle(): Promise<Record<string, number>> {
+  const snap = await db().collection('orders').get();
+  const counts: Record<string, number> = {};
+  for (const d of snap.docs) {
+    const key = (d.data().cycleId as string | null) ?? '';
+    counts[key] = (counts[key] ?? 0) + 1;
+  }
+  return counts;
 }
 
 export async function setOrderFields(
