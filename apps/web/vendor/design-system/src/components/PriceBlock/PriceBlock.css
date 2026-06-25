@@ -27,6 +27,16 @@
   color: var(--bc-color-text);
 }
 
+/* --- /kg suffix on the big rate (smaller, muted) --------------------------- */
+.bc-priceblock__perkg {
+  margin-inline-start: 2px;
+  font-family: var(--bc-font-sans);
+  font-size: var(--bc-text-body);
+  font-weight: var(--bc-weight-medium);
+  letter-spacing: 0;
+  color: var(--bc-color-text-muted);
+}
+
 /* --- Balance: muted secondary line ----------------------------------------- */
 .bc-priceblock__balance {
   margin: var(--bc-space-1) 0 0;
@@ -36,6 +46,10 @@
 }
 .bc-priceblock__balance-amount {
   font-weight: var(--bc-weight-semibold);
+}
+/* The deposit figure in the $/kg layout — accent ink so the now-cost stands out. */
+.bc-priceblock__deposit-now {
+  color: var(--bc-color-accent-text);
 }
 
 /* --- Caveat: fine print, faint, with a brass marker ------------------------ */

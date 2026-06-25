@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { Button, ListRow, Field, Input, SectionHeader } from '@beef-cartel/design-system';
 import { PageShell, BrandHeader } from '@/components/page-shell';
 import { useCart } from '@/components/cart-provider';
-import { formatAUD, estBalance, weightRange } from '@/lib/money';
+import { formatAUD, estBalance, weightRange, formatPerKg } from '@/lib/money';
 import { PICKUP_REGION } from '@/lib/fulfilment';
 import type { CustomerDetails, Product } from '@/lib/types';
 
@@ -81,7 +81,7 @@ export function ReviewClient({ products }: { products: Product[] }) {
             <ListRow
               key={l.product.id}
               title={`${l.product.name} × ${l.qty}`}
-              subtitle={`${l.product.grade} · ${weightRange(l.product)}`}
+              subtitle={`MSA ${l.product.grade} · ${formatPerKg(l.product.pricePerKg)} · ${weightRange(l.product)}`}
               value={formatAUD(l.product.depositAmount * l.qty)}
               divider={i < lines.length - 1}
             />
@@ -117,8 +117,9 @@ export function ReviewClient({ products }: { products: Product[] }) {
             <span className="bc-caption bc-tnum">{formatAUD(estBalanceTotal)}</span>
           </div>
           <p className="bc-caption" style={{ color: 'var(--bc-color-text-faint)', marginTop: 'var(--bc-space-3)' }}>
-            <span style={{ color: 'var(--bc-color-accent)' }}>*</span> Final price is billed by the
-            actual weight of your box at dispatch. We save your card today and charge the balance then.
+            <span style={{ color: 'var(--bc-color-accent)' }}>*</span> Each box is priced per kg. The final
+            price is its actual weight × the $/kg rate above, confirmed when your boxes are weighed. We
+            save your card today and charge the balance on pickup.
           </p>
         </div>
       </div>

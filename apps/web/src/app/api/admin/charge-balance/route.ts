@@ -10,18 +10,17 @@ export const dynamic = 'force-dynamic';
 
 interface Body {
   orderId: string;
-  /** The FINAL full price (AUD dollars) after weighing. Balance = this − deposit. */
-  finalTotalAmount: number;
-  finalWeightKg?: number;
+  /** Actual weighed kg per line item (the total for all boxes of that line). */
+  lineWeights: { productId: string; weightKg: number }[];
 }
 
 export async function POST(req: Request) {
   try {
     await requireAdmin(req);
 
-    const { orderId, finalTotalAmount, finalWeightKg } = (await req.json()) as Body;
-    if (!orderId || typeof finalTotalAmount !== 'number' || finalTotalAmount <= 0) {
-      return NextResponse.json({ error: 'orderId and a positive finalTotalAmount are required.' }, { status: 400 });
+    const { orderId, lineWeights } = (await req.json()) as Body;
+    if (!orderId || !Array.isArray(lineWeights)) {
+      return NextResponse.json({ error: 'orderId and lineWeights are required.' }, { status: 400 });
     }
 
     const order = await getOrder(orderId);
@@ -36,16 +35,67 @@ export async function POST(req: Request) {
         alreadyCharged: true,
       });
     }
+    // An SCA payment link was already emailed (status balance_failed + a live
+    // link). Do NOT charge off-session again — once the customer pays the link
+    // the webhook settles the order; a second charge here (esp. with corrected
+    // weights → a different amount/idempotency key) would double-charge.
+    if (order.status === 'balance_failed' && order.balancePaymentLink) {
+      return NextResponse.json({
+        status: 'sca_required',
+        paymentLink: order.balancePaymentLink,
+        balanceAmount: order.balanceAmount,
+        alreadyLinked: true,
+      });
+    }
     if (!order.stripeCustomerId || !order.stripePaymentMethodId) {
       return NextResponse.json({ error: 'No saved card on this order.' }, { status: 400 });
     }
 
+    // Final price = Σ over each line (locked $/kg × actual weighed kg). Every
+    // line must have a positive weight, and each must carry a $/kg (orders placed
+    // before the $/kg model don't and can't be charged this way).
+    const weightByProduct = new Map(lineWeights.map((w) => [w.productId, w.weightKg]));
+    const items = order.items ?? [];
+    if (items.length === 0) {
+      return NextResponse.json({ error: 'Order has no line items.' }, { status: 400 });
+    }
+    let finalTotalAmount = 0;
+    let finalWeightKg = 0;
+    const recordedWeights: Record<string, number> = {};
+    for (const it of items) {
+      const kg = weightByProduct.get(it.productId);
+      if (typeof kg !== 'number' || !Number.isFinite(kg) || kg <= 0) {
+        return NextResponse.json(
+          { error: `Enter a valid weight for ${it.name}.` },
+          { status: 400 },
+        );
+      }
+      if (!it.pricePerKg || it.pricePerKg <= 0) {
+        return NextResponse.json(
+          { error: `${it.name} has no $/kg rate (order predates $/kg pricing).` },
+          { status: 400 },
+        );
+      }
+      finalTotalAmount += it.pricePerKg * kg;
+      finalWeightKg += kg;
+      recordedWeights[it.productId] = kg;
+    }
+    finalTotalAmount = Math.round(finalTotalAmount * 100) / 100;
+    finalWeightKg = Math.round(finalWeightKg * 1000) / 1000;
+
     const balance = Math.round((finalTotalAmount - order.depositAmount) * 100) / 100;
     if (balance <= 0) {
-      return NextResponse.json({ error: 'Balance must be greater than zero.' }, { status: 400 });
+      return NextResponse.json(
+        {
+          error: `Final ${finalTotalAmount.toFixed(2)} is not more than the ${order.depositAmount.toFixed(
+            2,
+          )} deposit already paid — check the weights.`,
+        },
+        { status: 400 },
+      );
     }
 
-    const common = { finalTotalAmount, ...(finalWeightKg != null ? { finalWeightKg } : {}) };
+    const common = { finalTotalAmount, finalWeightKg, lineWeights: recordedWeights };
 
     try {
       // Charge the saved card without the customer present.

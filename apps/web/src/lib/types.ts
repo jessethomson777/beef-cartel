@@ -8,15 +8,21 @@ export interface Product {
   id: string;
   name: string;
   description: string;
-  /** Human cut summary, e.g. "Whole striploin · portion-ready". */
+  /** Human cut summary, e.g. "Whole strip loin". */
   cuts: string;
   /** MSA marbling grade label, e.g. "MSA 7", "9+". */
   grade: string;
   weightMinKg: number;
   weightMaxKg: number;
-  /** Deposit charged now (AUD dollars). Server recomputes from this — never the client. */
+  /**
+   * PRICE PER KG (AUD) — the single source of truth for pricing. Edit this to
+   * change a cut's price. `estTotalAmount` and `depositAmount` are DERIVED from
+   * it × the weight range (see lib/money.ts `withDerivedPricing`).
+   */
+  pricePerKg: number;
+  /** Deposit charged now (AUD dollars), derived = 30% of estTotalAmount. */
   depositAmount: number;
-  /** Estimated full price (AUD dollars). Est. balance = estTotalAmount - depositAmount. */
+  /** Estimated box price (AUD dollars), derived = pricePerKg × midpoint weight. */
   estTotalAmount: number;
   imageUrl?: string;
   sort: number;
@@ -49,6 +55,11 @@ export interface OrderItem {
   qty: number;
   unitDeposit: number;
   estUnitTotal: number;
+  /**
+   * $/kg locked at order time — the rate the final balance is billed at, so a
+   * later catalogue price change never affects an existing order.
+   */
+  pricePerKg: number;
   /** MSA grade label, e.g. "8/9" (denormalised for receipts/confirmation). */
   grade?: string;
   /** Weight range string, e.g. "1.2–1.5 kg". */
@@ -68,10 +79,18 @@ export interface Order {
   depositPiId: string;
   balanceAmount: number | null;
   balancePiId: string | null;
+  /** SCA fallback: a single-use Stripe link emailed when an off-session charge needs auth. */
+  balancePaymentLink?: string | null;
   status: OrderStatus;
   /** Epoch milliseconds (serialisable to the client). */
   createdAt: number;
   items?: OrderItem[];
+  /** Final billed price once weighed (AUD) = Σ(line $/kg × actual line kg). */
+  finalTotalAmount?: number;
+  /** Total actual weight entered at dispatch (kg). */
+  finalWeightKg?: number;
+  /** Actual weight entered per line item (productId → kg). */
+  lineWeights?: Record<string, number>;
 }
 
 /** A box queued before payment confirms (staging; promoted to an Order by the webhook). */

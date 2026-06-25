@@ -49,6 +49,7 @@ export async function POST(req: Request) {
         qty,
         unitDeposit: p.depositAmount,
         estUnitTotal: p.estTotalAmount,
+        pricePerKg: p.pricePerKg,
         grade: p.grade,
         weightRange: weightRange(p),
       });

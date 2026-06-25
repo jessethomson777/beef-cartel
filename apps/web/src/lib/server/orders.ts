@@ -59,9 +59,13 @@ function toOrder(id: string, d: FirebaseFirestore.DocumentData, items?: OrderIte
     depositPiId: d.depositPiId,
     balanceAmount: d.balanceAmount ?? null,
     balancePiId: d.balancePiId ?? null,
+    balancePaymentLink: d.balancePaymentLink ?? null,
     status: (d.status ?? 'deposit_paid') as OrderStatus,
     createdAt: millis(d.createdAt),
     items,
+    finalTotalAmount: d.finalTotalAmount ?? undefined,
+    finalWeightKg: d.finalWeightKg ?? undefined,
+    lineWeights: d.lineWeights ?? undefined,
   };
 }
 

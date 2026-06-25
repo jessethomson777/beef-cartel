@@ -2,6 +2,7 @@ import 'server-only';
 import { adminDb } from '../firebase-admin';
 import type { Product } from '../types';
 import { PLACEHOLDER_PRODUCTS } from '../placeholder-products';
+import { withDerivedPricing } from '../money';
 
 /**
  * Active catalogue, server-side. Falls back to placeholders when Firestore has
@@ -16,7 +17,11 @@ export async function getActiveProducts(): Promise<Product[]> {
       .orderBy('sort')
       .get();
     if (snap.empty) return PLACEHOLDER_PRODUCTS;
-    return snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<Product, 'id'>) }));
+    // Derive estTotalAmount/depositAmount from pricePerKg so $/kg is the only
+    // pricing lever (and old pre-$/kg docs still render via back-compat infer).
+    return snap.docs.map((d) =>
+      withDerivedPricing({ id: d.id, ...(d.data() as Omit<Product, 'id'>) }),
+    );
   } catch (e) {
     console.warn('[products] falling back to placeholders:', (e as Error).message);
     return PLACEHOLDER_PRODUCTS;

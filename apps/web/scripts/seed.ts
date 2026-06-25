@@ -38,16 +38,43 @@ if (!projectId) {
 const app = getApps()[0] ?? initializeApp({ projectId });
 const db = getFirestore(app);
 
+// Mirror api/admin/seed-products: pricePerKg + weights are seeded ONCE then
+// preserved (so console edits stick); depositAmount/estTotalAmount are derived
+// on read and never written.
+const PRICING_KEYS = new Set(['pricePerKg', 'weightMinKg', 'weightMaxKg']);
+const ALWAYS_OMIT = new Set(['id', 'depositAmount', 'estTotalAmount']);
+
 async function main() {
   console.log(`Seeding Firestore project "${projectId}"…`);
 
+  const existing = await db.collection('products').get();
+  const existingData = new Map(existing.docs.map((d) => [d.id, d.data()]));
+
   const batch = db.batch();
+  let created = 0;
+  let refreshed = 0;
   for (const p of PLACEHOLDER_PRODUCTS) {
-    const { id, ...rest } = p;
-    batch.set(db.collection('products').doc(id), rest, { merge: true });
+    const fields = Object.fromEntries(Object.entries(p).filter(([k]) => !ALWAYS_OMIT.has(k)));
+    const ref = db.collection('products').doc(p.id);
+    const cur = existingData.get(p.id);
+    if (cur) {
+      const update: Record<string, unknown> = {};
+      for (const [k, v] of Object.entries(fields)) {
+        if (PRICING_KEYS.has(k)) {
+          if (cur[k] == null) update[k] = v; // migrate once; preserve manual edits
+        } else {
+          update[k] = v;
+        }
+      }
+      batch.set(ref, update, { merge: true });
+      refreshed++;
+    } else {
+      batch.set(ref, fields);
+      created++;
+    }
   }
   await batch.commit();
-  console.log(`✓ ${PLACEHOLDER_PRODUCTS.length} placeholder products written`);
+  console.log(`✓ products: ${created} created, ${refreshed} refreshed ($/kg seeded once, preserved if edited)`);
 
   const open = await db.collection('orderCycles').where('status', '==', 'open').limit(1).get();
   if (open.empty) {

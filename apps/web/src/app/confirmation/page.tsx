@@ -5,7 +5,7 @@ import { ClearCartOnMount } from '@/components/clear-cart-on-mount';
 import { getOrder, getPendingOrder, finalizeOrderFromPending } from '@/lib/server/orders';
 import { stripe } from '@/lib/stripe';
 import { sendDepositReceipt } from '@/lib/email';
-import { formatAUD } from '@/lib/money';
+import { formatAUD, formatPerKg } from '@/lib/money';
 import { PICKUP_ADDRESS } from '@/lib/fulfilment';
 import type { Order, OrderItem, OrderStatus, PendingOrder } from '@/lib/types';
 
@@ -122,9 +122,9 @@ export default async function ConfirmationPage({
                 key={i.productId}
                 title={`${i.name} × ${i.qty}`}
                 subtitle={
-                  i.grade
-                    ? `MSA ${i.grade}${i.weightRange ? ` · ${i.weightRange}` : ''}`
-                    : undefined
+                  [i.grade ? `MSA ${i.grade}` : null, i.pricePerKg ? formatPerKg(i.pricePerKg) : null, i.weightRange ?? null]
+                    .filter(Boolean)
+                    .join(' · ') || undefined
                 }
                 value={formatAUD(i.unitDeposit * i.qty)}
                 divider={idx < items.length - 1}
@@ -143,10 +143,19 @@ export default async function ConfirmationPage({
               {formatAUD(deposit)}
             </span>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', padding: 'var(--bc-space-2)' }}>
-            <span className="bc-caption">Est. balance on dispatch</span>
-            <span className="bc-caption bc-tnum">{formatAUD(estBalanceTotal)}</span>
-          </div>
+          {order?.status === 'balance_charged' && order.finalTotalAmount != null ? (
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: 'var(--bc-space-2)' }}>
+              <span className="bc-caption">
+                Final billed{order.finalWeightKg != null ? ` · ${order.finalWeightKg} kg weighed` : ''}
+              </span>
+              <span className="bc-caption bc-tnum">{formatAUD(order.finalTotalAmount)}</span>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: 'var(--bc-space-2)' }}>
+              <span className="bc-caption">Est. balance on dispatch</span>
+              <span className="bc-caption bc-tnum">{formatAUD(estBalanceTotal)}</span>
+            </div>
+          )}
         </div>
       )}
 

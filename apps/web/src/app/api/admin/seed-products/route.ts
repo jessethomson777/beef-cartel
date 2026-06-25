@@ -9,15 +9,21 @@ export const dynamic = 'force-dynamic';
 
 const DAY = 86_400_000;
 
+// Pricing levers: seeded once onto a doc, then PRESERVED so console edits stick.
+// depositAmount/estTotalAmount are never written — they're derived from pricePerKg.
+const PRICING_KEYS = new Set(['pricePerKg', 'weightMinKg', 'weightMaxKg']);
+
 /**
  * Idempotent catalogue seed, run by an admin. Writes the placeholder products
  * into Firestore so every field is editable in the Firebase console.
  *
- * - New docs: created in full.
- * - Existing docs: DISPLAY fields are refreshed (name, cuts, grade, weights,
- *   description, image, sort, active) so re-seeding pushes copy changes — but
- *   PRICING (depositAmount, estTotalAmount) is preserved so manual price edits
- *   in the console are never clobbered.
+ * - New docs: created in full (incl. $/kg + weights).
+ * - Existing docs: DISPLAY fields (name, cuts, grade, description, sort, active,
+ *   image) are refreshed so re-seeding pushes copy changes. PRICING levers
+ *   (pricePerKg, weights) are seeded only if ABSENT — so the first sync after the
+ *   $/kg switch migrates old docs to real rates, but later manual edits in the
+ *   console are never clobbered. depositAmount/estTotalAmount are derived on read
+ *   and never stored.
  *
  * Also ensures one open cycle exists.
  */
@@ -27,20 +33,29 @@ export async function POST(req: Request) {
     const db = adminDb();
 
     const existing = await db.collection('products').get();
-    const have = new Set(existing.docs.map((d) => d.id));
+    const existingData = new Map(existing.docs.map((d) => [d.id, d.data()]));
 
     const batch = db.batch();
     let created = 0;
     let refreshed = 0;
     for (const p of PLACEHOLDER_PRODUCTS) {
-      const { id, depositAmount, estTotalAmount, ...display } = p;
+      const { id, depositAmount: _d, estTotalAmount: _e, ...fields } = p;
       const ref = db.collection('products').doc(id);
-      if (have.has(id)) {
-        // Refresh only display fields; keep console-edited prices intact.
-        batch.set(ref, display, { merge: true });
+      const cur = existingData.get(id);
+      if (cur) {
+        // Refresh display fields; seed pricing levers only when absent.
+        const update: Record<string, unknown> = {};
+        for (const [k, v] of Object.entries(fields)) {
+          if (PRICING_KEYS.has(k)) {
+            if (cur[k] == null) update[k] = v; // migrate once; preserve manual edits
+          } else {
+            update[k] = v;
+          }
+        }
+        batch.set(ref, update, { merge: true });
         refreshed++;
       } else {
-        batch.set(ref, { ...display, depositAmount, estTotalAmount });
+        batch.set(ref, fields);
         created++;
       }
     }

@@ -20,6 +20,10 @@ export interface BoxCardProps extends Omit<HTMLAttributes<HTMLElement>, 'onClick
   deposit: number;
   /** Balance charged on dispatch (passed to PriceBlock). */
   balance: number;
+  /** Price per kg — when set, the card leads with the $/kg rate. */
+  pricePerKg?: number;
+  /** Estimated box price (shown under the $/kg rate). */
+  estTotal?: number;
   /** Current quantity in the order. */
   quantity: number;
   onQuantityChange: (n: number) => void;
@@ -37,6 +41,8 @@ export function BoxCard({
   cut,
   deposit,
   balance,
+  pricePerKg,
+  estTotal,
   quantity,
   onQuantityChange,
   soldOut = false,
@@ -105,7 +111,7 @@ export function BoxCard({
           <span className="bc-caption bc-muted bc-tnum">{weightRange}</span>
         </p>
 
-        <PriceBlock deposit={deposit} balance={balance} />
+        <PriceBlock deposit={deposit} balance={balance} pricePerKg={pricePerKg} estTotal={estTotal} />
 
         <footer className="bc-boxcard__footer">
           <span className="bc-label bc-muted bc-boxcard__qty-label" id={`qty-${slug(name)}`}>

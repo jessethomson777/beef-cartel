@@ -12,7 +12,7 @@ import {
 import { Button, Field, Input, SectionHeader, ListRow } from '@beef-cartel/design-system';
 import { PageShell, BrandHeader } from '@/components/page-shell';
 import { clientAuth } from '@/lib/firebase-client';
-import { formatAUD } from '@/lib/money';
+import { formatAUD, formatPerKg } from '@/lib/money';
 import type { Order, OrderCycle, OrderStatus, PurchaseOrder } from '@/lib/types';
 
 const EMAIL_KEY = 'bc-admin-email';
@@ -219,7 +219,7 @@ function Dashboard({ user }: { user: User }) {
       const res = await authedFetch('/api/admin/seed-products', { method: 'POST' });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || 'Seed failed');
-      setSeedMsg(`Catalogue synced — ${json.created} added, ${json.refreshed} refreshed${json.cycleCreated ? ', open cycle created' : ''}. Names/cuts/weights updated; prices preserved. Edit further in Firebase → Firestore → products.`);
+      setSeedMsg(`Catalogue synced — ${json.created} added, ${json.refreshed} refreshed${json.cycleCreated ? ', open cycle created' : ''}. Copy refreshed; $/kg + weights seeded (kept if you've edited them). Tune $/kg in Firebase → Firestore → products.`);
       load();
     } catch (e) {
       setSeedMsg((e as Error).message);
@@ -383,26 +383,39 @@ function OrderCard({
   authedFetch: (url: string, init?: RequestInit) => Promise<Response>;
   onChanged: () => void;
 }) {
-  const [finalTotal, setFinalTotal] = useState('');
-  const [weight, setWeight] = useState('');
+  const items = order.items ?? [];
+  // productId → weight string (kg) entered for that line.
+  const [weights, setWeights] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   // Two-step charge: the first click previews the computed balance; the second
-  // confirms and fires. Editing either input cancels a pending confirmation so a
+  // confirms and fires. Editing any weight cancels a pending confirmation so a
   // stale amount can never be charged by mistake.
   const [pendingBalance, setPendingBalance] = useState<number | null>(null);
 
   const firstName = order.customerName.split(' ')[0] || 'this customer';
 
-  const editTotal = (v: string) => {
-    setFinalTotal(v);
+  const setWeight = (productId: string, v: string) => {
+    setWeights((w) => ({ ...w, [productId]: v }));
     setPendingBalance(null);
     setMsg(null);
   };
-  const editWeight = (v: string) => {
-    setWeight(v);
-    setPendingBalance(null);
-  };
+
+  // Live final = Σ (locked $/kg × entered kg); balance = final − deposit paid.
+  const allWeighed =
+    items.length > 0 &&
+    items.every((i) => {
+      const n = Number(weights[i.productId]);
+      return !!weights[i.productId]?.trim() && Number.isFinite(n) && n > 0;
+    });
+  const finalTotal = items.reduce((s, i) => {
+    const n = Number(weights[i.productId]);
+    return s + (i.pricePerKg ?? 0) * (Number.isFinite(n) && n > 0 ? n : 0);
+  }, 0);
+  const finalTotalRounded = Math.round(finalTotal * 100) / 100;
+  // Round the final FIRST, then subtract — mirrors the server so the previewed
+  // balance always equals what Stripe is actually charged (no 1-cent drift).
+  const balance = Math.round((finalTotalRounded - order.depositAmount) * 100) / 100;
 
   const sendCharge = async () => {
     setBusy(true);
@@ -413,8 +426,7 @@ function OrderCard({
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
           orderId: order.id,
-          finalTotalAmount: Number(finalTotal),
-          finalWeightKg: weight ? Number(weight) : undefined,
+          lineWeights: items.map((i) => ({ productId: i.productId, weightKg: Number(weights[i.productId]) })),
         }),
       });
       const json = await res.json();
@@ -437,23 +449,26 @@ function OrderCard({
       return;
     }
     // First click → validate and preview the math (no money moves yet).
-    const amount = Number(finalTotal);
-    if (!finalTotal.trim() || !Number.isFinite(amount) || amount <= 0) {
-      setMsg('Enter the final total price.');
+    if (!allWeighed) {
+      setMsg('Enter a weight for every box.');
       return;
     }
-    const balance = Math.round((amount - order.depositAmount) * 100) / 100;
     if (balance <= 0) {
-      setMsg(`Final total must be more than the ${formatAUD(order.depositAmount)} deposit already paid.`);
+      setMsg(
+        `Final ${formatAUD(finalTotalRounded)} isn’t more than the ${formatAUD(order.depositAmount)} deposit already paid — check the weights.`,
+      );
       return;
     }
     setPendingBalance(balance);
     setMsg(
-      `${formatAUD(amount)} total − ${formatAUD(order.depositAmount)} deposit = charge ${formatAUD(balance)} to ${firstName}’s card. Tap Confirm to charge.`,
+      `${formatAUD(finalTotalRounded)} final − ${formatAUD(order.depositAmount)} deposit = charge ${formatAUD(balance)} to ${firstName}’s card. Tap Confirm to charge.`,
     );
   };
 
   const done = order.status === 'balance_charged';
+  // An SCA link has been emailed and is awaiting the customer — don't offer to
+  // charge again (the server blocks it too; this hides the dead form).
+  const awaitingSca = order.status === 'balance_failed' && !!order.balancePaymentLink;
 
   return (
     <div
@@ -473,11 +488,15 @@ function OrderCard({
       </div>
 
       <div style={{ margin: 'var(--bc-space-3) 0' }}>
-        {(order.items ?? []).map((i) => (
+        {items.map((i) => (
           <ListRow
             key={i.productId}
             title={`${i.name} × ${i.qty}`}
-            subtitle={i.grade ? `MSA ${i.grade}${i.weightRange ? ` · ${i.weightRange}` : ''}` : undefined}
+            subtitle={
+              [i.grade ? `MSA ${i.grade}` : null, i.pricePerKg ? formatPerKg(i.pricePerKg) : null, i.weightRange ?? null]
+                .filter(Boolean)
+                .join(' · ') || undefined
+            }
             value={formatAUD(i.unitDeposit * i.qty)}
             divider={false}
           />
@@ -496,20 +515,52 @@ function OrderCard({
         )}
       </div>
 
-      {!done && (
+      {awaitingSca && (
+        <p className="bc-caption" style={{ marginTop: 'var(--bc-space-3)', color: 'var(--bc-color-warning)' }}>
+          Payment link emailed — awaiting the customer to confirm their card. The balance settles automatically once they pay.
+        </p>
+      )}
+
+      {!done && !awaitingSca && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--bc-space-3)', marginTop: 'var(--bc-space-4)' }}>
-          <div style={{ display: 'flex', gap: 'var(--bc-space-3)' }}>
-            <div style={{ flex: 3, minWidth: 0 }}>
-              <Field label="Final total $">
-                <Input value={finalTotal} onChange={(e) => editTotal(e.target.value)} inputMode="decimal" placeholder="0.00" />
-              </Field>
+          <p className="bc-label bc-muted">Enter each box’s actual weight (kg)</p>
+          {items.map((i) => {
+            const n = Number(weights[i.productId]);
+            const lineTotal =
+              i.pricePerKg && Number.isFinite(n) && n > 0
+                ? Math.round(i.pricePerKg * n * 100) / 100
+                : null;
+            return (
+              <div key={i.productId} style={{ display: 'flex', gap: 'var(--bc-space-3)', alignItems: 'flex-end' }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <Field label={`${i.name}${i.qty > 1 ? ` ×${i.qty}` : ''} · ${i.pricePerKg ? formatPerKg(i.pricePerKg) : 'no $/kg'}`}>
+                    <Input
+                      value={weights[i.productId] ?? ''}
+                      onChange={(e) => setWeight(i.productId, e.target.value)}
+                      inputMode="decimal"
+                      placeholder="0.0"
+                    />
+                  </Field>
+                </div>
+                <div style={{ width: 80, textAlign: 'right', paddingBottom: 'var(--bc-space-3)' }}>
+                  <span className="bc-caption bc-tnum bc-muted">{lineTotal != null ? formatAUD(lineTotal) : '—'}</span>
+                </div>
+              </div>
+            );
+          })}
+
+          {allWeighed && (
+            <div className="bc-caption" style={{ display: 'flex', flexDirection: 'column', gap: 2, marginTop: 'var(--bc-space-1)' }}>
+              <span>
+                Final total: <span className="bc-tnum" style={{ fontWeight: 700 }}>{formatAUD(finalTotalRounded)}</span>
+              </span>
+              <span className="bc-muted">
+                Deposit paid {formatAUD(order.depositAmount)} · Balance to charge{' '}
+                <span className="bc-tnum">{formatAUD(balance)}</span>
+              </span>
             </div>
-            <div style={{ flex: 2, minWidth: 0 }}>
-              <Field label="Weight (kg)">
-                <Input value={weight} onChange={(e) => editWeight(e.target.value)} inputMode="decimal" placeholder="0.0" />
-              </Field>
-            </div>
-          </div>
+          )}
+
           <Button
             onClick={onChargeClick}
             loading={busy}

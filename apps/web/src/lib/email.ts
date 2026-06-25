@@ -1,7 +1,7 @@
 import 'server-only';
 import { Resend } from 'resend';
 import type { Order, OrderItem, PurchaseOrder } from './types';
-import { formatAUD } from './money';
+import { formatAUD, formatPerKg } from './money';
 import { PICKUP_ADDRESS } from './fulfilment';
 
 function client(): Resend {
@@ -31,15 +31,19 @@ function shell(title: string, body: string): string {
 
 function itemsTable(items: OrderItem[]): string {
   const rows = items
-    .map(
-      (i) =>
-        `<tr><td style="padding:8px 0;color:#F4EFE6">${i.name} <span style="color:#8C7F6C">× ${i.qty}</span>${
-          i.grade
-            ? `<br><span style="color:#B08D4F;font-size:12px">MSA ${i.grade}${i.weightRange ? ` · ${i.weightRange}` : ''}</span>`
-            : ''
-        }</td>
-         <td style="padding:8px 0;text-align:right;color:#B8AC98;vertical-align:top">${formatAUD(i.unitDeposit * i.qty)}</td></tr>`,
-    )
+    .map((i) => {
+      const meta = [
+        i.grade ? `MSA ${i.grade}` : null,
+        i.pricePerKg ? formatPerKg(i.pricePerKg) : null,
+        i.weightRange ?? null,
+      ]
+        .filter(Boolean)
+        .join(' · ');
+      return `<tr><td style="padding:8px 0;color:#F4EFE6">${i.name} <span style="color:#8C7F6C">× ${i.qty}</span>${
+        meta ? `<br><span style="color:#B08D4F;font-size:12px">${meta}</span>` : ''
+      }</td>
+         <td style="padding:8px 0;text-align:right;color:#B8AC98;vertical-align:top">${formatAUD(i.unitDeposit * i.qty)}</td></tr>`;
+    })
     .join('');
   return `<table style="width:100%;border-collapse:collapse;font-size:14px">${rows}</table>`;
 }
@@ -61,7 +65,7 @@ export async function sendDepositReceipt(order: Order): Promise<void> {
       <p style="font-size:16px;color:#F4EFE6;margin:8px 0 0;font-weight:600">${PICKUP_ADDRESS}</p>
       <p style="font-size:13px;color:#8C7F6C;margin:8px 0 0;line-height:1.5">Laine's cold room. We'll email you when your boxes are weighed and ready to collect — please wait for that email before coming by.</p>
     </div>
-    <p style="font-size:12px;color:#8C7F6C;line-height:1.5;margin-top:16px"><span style="color:#B08D4F">*</span> Final price is billed by the actual weight of your box at dispatch. We'll charge the balance to your saved card and email a receipt.</p>`;
+    <p style="font-size:12px;color:#8C7F6C;line-height:1.5;margin-top:16px"><span style="color:#B08D4F">*</span> Each box is priced per kg. The final price is its actual weight × the $/kg rate, confirmed when your boxes are weighed — we'll charge the balance to your saved card and email a receipt.</p>`;
   await client().emails.send({
     from: from(),
     to: order.email,

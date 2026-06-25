@@ -134,6 +134,8 @@ export function Catalogue({ products }: { products: Product[] }) {
             cut={p.cuts}
             deposit={p.depositAmount}
             balance={estBalance(p)}
+            pricePerKg={p.pricePerKg}
+            estTotal={p.estTotalAmount}
             quantity={quantities[p.id] ?? 0}
             onQuantityChange={(n) => setQty(p.id, n)}
           />
